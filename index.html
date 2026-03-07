@@ -1,0 +1,2685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDDC Flagship Commons — Construction Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" crossorigin="anonymous"></script>
+    <script>
+    if (typeof window.jspdf === 'undefined') {
+        document.write('<scr'+'ipt src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js" crossorigin="anonymous"><\/scr'+'ipt>');
+    }
+    </script>
+    <script>
+    if (typeof window.jspdf === 'undefined') {
+        document.write('<scr'+'ipt src="https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js" crossorigin="anonymous"><\/scr'+'ipt>');
+    }
+    </script>
+    <style>
+        :root {
+            --primary: #1a3a5c;
+            --primary-light: #2c5f8a;
+            --accent: #d4a843;
+            --green: #2e8b57;
+            --yellow: #d4a843;
+            --red: #c0392b;
+            --bg: #f4f6f8;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+            --text-light: #7f8c8d;
+            --border: #e0e4e8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
+
+        /* Header */
+        .header { background: var(--primary); color: white; padding: 20px 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .header h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.5px; }
+        .header .subtitle { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+        .header-right { display: flex; align-items: center; gap: 16px; font-size: 13px; }
+        .health-badge { padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+        .health-yellow { background: var(--yellow); color: #000; }
+        .health-green { background: var(--green); color: #fff; }
+        .health-red { background: var(--red); color: #fff; }
+
+        /* View Toggle */
+        .view-toggle { background: var(--primary-light); padding: 8px 32px; display: flex; gap: 4px; }
+        .view-btn { background: transparent; border: none; color: rgba(255,255,255,0.6); padding: 8px 20px; cursor: pointer; font-size: 13px; font-weight: 600; border-radius: 6px; transition: all 0.2s; }
+        .view-btn.active { background: rgba(255,255,255,0.15); color: #fff; }
+        .view-btn:hover { color: #fff; }
+
+        /* Main Content */
+        .main { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+        /* KPI Cards */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .kpi-card { background: var(--card-bg); border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid var(--primary); }
+        .kpi-card.green { border-left-color: var(--green); }
+        .kpi-card.yellow { border-left-color: var(--yellow); }
+        .kpi-card.red { border-left-color: var(--red); }
+        .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); font-weight: 600; margin-bottom: 6px; }
+        .kpi-value { font-size: 26px; font-weight: 700; color: var(--primary); }
+        .kpi-sub { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+
+        /* KPI Hover Dropdowns */
+        .kpi-card { position: relative; }
+        .kpi-hover-dropdown { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-radius: 0 0 10px 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); z-index: 100; padding: 12px 16px; border-top: 2px solid var(--primary-light); }
+        .kpi-card:hover .kpi-hover-dropdown { display: block; }
+        .phase-list { list-style: none; padding: 0; margin: 0; }
+        .phase-list li { padding: 6px 0; font-size: 12px; color: var(--text-light); border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 8px; }
+        .phase-list li:last-child { border-bottom: none; }
+        .phase-list li.phase-complete { color: var(--green); }
+        .phase-list li.phase-complete::before { content: '\2713'; font-weight: 700; }
+        .phase-list li.phase-active { color: var(--primary); font-weight: 700; }
+        .phase-list li.phase-active::before { content: '\25B6'; font-size: 10px; }
+        .phase-list li.phase-future { color: #aaa; }
+        .phase-list li.phase-future::before { content: '\25CB'; font-size: 10px; }
+        .schedule-hover { text-align: center; }
+        .schedule-countdown { font-size: 22px; font-weight: 700; color: var(--primary); }
+        .schedule-countdown-sub { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+
+        /* Tenant Recruitment */
+        .tenant-pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .tenant-card { background: var(--card-bg); border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid var(--primary); position: relative; }
+        .tenant-card.t-confirmed { border-left-color: var(--green); }
+        .tenant-card.t-interested { border-left-color: #3498db; }
+        .tenant-card.t-prospect-local { border-left-color: var(--yellow); }
+        .tenant-card.t-prospect-national { border-left-color: #9b59b6; }
+        .tenant-name { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+        .tenant-type { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 8px; }
+        .tenant-type.tt-confirmed { color: var(--green); }
+        .tenant-type.tt-interested { color: #3498db; }
+        .tenant-type.tt-local { color: #c9860b; }
+        .tenant-type.tt-national { color: #9b59b6; }
+        .tenant-desc { font-size: 13px; color: var(--text-light); line-height: 1.5; margin-bottom: 10px; }
+        .tenant-contact { font-size: 12px; color: var(--text-light); border-top: 1px solid #f0f0f0; padding-top: 8px; }
+        .tenant-contact strong { color: var(--primary); }
+        .tenant-contact a { color: #3498db; text-decoration: none; }
+        .tenant-contact a:hover { text-decoration: underline; }
+        .tenant-section-title { font-size: 14px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin: 20px 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid var(--primary-light); }
+        .tenant-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+        .tenant-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-light); }
+        .tenant-legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+        .tenant-synergy { background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%); border-radius: 10px; padding: 20px; margin-top: 20px; border: 1px solid #e0e8f5; }
+        .tenant-synergy h4 { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 10px; }
+        .synergy-flow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 16px 0; }
+        .synergy-node { background: #fff; border: 2px solid var(--primary-light); border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; color: var(--primary); text-align: center; }
+        .synergy-node.active { background: var(--primary); color: #fff; }
+        .synergy-arrow { color: var(--primary-light); font-size: 18px; font-weight: 700; }
+
+        /* Financial Forecast */
+        .forecast-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px; }
+        .forecast-kpi { background: var(--card-bg); border-radius: 10px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); text-align: center; }
+        .forecast-kpi .fk-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); font-weight: 600; }
+        .forecast-kpi .fk-value { font-size: 24px; font-weight: 700; color: var(--primary); margin: 4px 0; }
+        .forecast-kpi .fk-sub { font-size: 11px; color: var(--text-light); }
+        .forecast-kpi.fk-green { border-bottom: 3px solid var(--green); }
+        .forecast-kpi.fk-yellow { border-bottom: 3px solid var(--yellow); }
+        .forecast-kpi.fk-red { border-bottom: 3px solid var(--red); }
+        .forecast-kpi.fk-blue { border-bottom: 3px solid #3498db; }
+        .forecast-table th { font-size: 10px; padding: 8px 10px; }
+        .forecast-table td { font-size: 12px; padding: 8px 10px; }
+        .forecast-table td.est-cell { color: #3498db; }
+        .forecast-table td.act-cell { color: var(--green); font-weight: 600; }
+        .forecast-table td.var-cell { font-weight: 600; }
+        .forecast-table td.var-over { color: var(--red); }
+        .forecast-table td.var-under { color: var(--green); }
+        .forecast-table tr.peak-row { background: #fff3e6; }
+        .forecast-table tr.current-row { background: #e8f4fd; border-left: 3px solid #3498db; }
+        .forecast-table tr.future-row td { color: #aaa; }
+        .forecast-table tr.total-row { background: var(--primary); }
+        .forecast-table tr.total-row td { color: #fff; font-weight: 700; border: none; }
+        .forecast-quarter-header td { background: #f0f4ff; font-weight: 700; color: var(--primary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--primary-light); }
+        .forecast-bar { height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden; margin-top: 4px; }
+        .forecast-bar-fill { height: 100%; border-radius: 3px; }
+        .forecast-bar-est { background: #3498db; }
+        .forecast-bar-act { background: var(--green); }
+        .forecast-note { background: #fff8e1; border-left: 3px solid var(--yellow); padding: 12px 16px; font-size: 12px; color: #856404; border-radius: 0 6px 6px 0; margin-bottom: 16px; line-height: 1.6; }
+        .forecast-chart-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        @media (max-width: 900px) { .forecast-chart-wrap { grid-template-columns: 1fr; } }
+
+        /* Cards */
+        .card { background: var(--card-bg); border-radius: 10px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        .card h3 { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Charts Grid */
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .chart-container { position: relative; height: 300px; }
+
+        /* Tables */
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: var(--primary); color: #fff; padding: 10px 12px; text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; cursor: pointer; }
+        th:hover { background: var(--primary-light); }
+        td { padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        tr:hover td { background: #f8f9fa; }
+        .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .status-resolved { background: #d4edda; color: #155724; }
+        .status-ongoing { background: #fff3cd; color: #856404; }
+        .status-new { background: #cce5ff; color: #004085; }
+
+        /* Milestone Timeline */
+        .milestone-list { list-style: none; }
+        .milestone-item { display: flex; align-items: flex-start; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .milestone-item:last-child { border-bottom: none; }
+        .ms-dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+        .ms-dot.complete { background: var(--green); }
+        .ms-dot.in-progress { background: var(--yellow); }
+        .ms-dot.upcoming { background: var(--border); }
+        .ms-info { flex: 1; }
+        .ms-name { font-weight: 600; font-size: 13px; }
+        .ms-dates { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+        .ms-pct { font-weight: 700; font-size: 13px; min-width: 50px; text-align: right; }
+
+        /* Progress Bar */
+        .progress-bar { height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden; margin-top: 6px; }
+        .progress-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+        .progress-fill.green { background: var(--green); }
+        .progress-fill.yellow { background: var(--yellow); }
+        .progress-fill.red { background: var(--red); }
+
+        /* Issues */
+        .issue-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .issue-item:last-child { border-bottom: none; }
+        .issue-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .issue-title { font-weight: 600; font-size: 13px; }
+        .issue-desc { font-size: 12px; color: var(--text-light); }
+        .issue-owner { font-size: 11px; color: var(--primary-light); font-weight: 600; margin-top: 4px; }
+
+        /* Field Activity Timeline */
+        .activity-timeline { }
+        .activity-week { margin-bottom: 16px; }
+        .activity-date { font-weight: 700; font-size: 13px; color: var(--primary); margin-bottom: 6px; }
+        .activity-items { font-size: 12px; color: var(--text); line-height: 1.6; padding-left: 16px; }
+        .activity-items li { margin-bottom: 2px; }
+
+        /* Footer */
+        .footer { text-align: center; padding: 20px; font-size: 11px; color: var(--text-light); }
+
+        /* Responsive */
+        @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 600px) { .kpi-grid { grid-template-columns: 1fr 1fr; } .main { padding: 12px; } }
+
+        /* Print */
+        @media print {
+            .view-toggle, .view-btn { display: none; }
+            .card { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; }
+            body { background: #fff; }
+        }
+
+        /* Filter Toggle */
+        .filter-bar { display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 12px; align-items: center; }
+        .filter-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-light); cursor: pointer; user-select: none; }
+        .filter-toggle input { accent-color: var(--primary); cursor: pointer; }
+
+        /* Safety Counter */
+        .safety-counter { display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border-radius: 10px; padding: 16px 24px; margin-bottom: 16px; border-left: 5px solid var(--green); }
+        .safety-days { font-size: 40px; font-weight: 800; color: var(--green); line-height: 1; }
+        .safety-text { font-size: 13px; color: #155724; }
+        .safety-text strong { font-size: 15px; display: block; }
+
+        /* Billing Note */
+        .billing-note { background: #fff8e1; border-left: 3px solid var(--yellow); padding: 10px 14px; font-size: 12px; color: #856404; margin-top: 8px; border-radius: 0 6px 6px 0; line-height: 1.5; }
+
+        /* PCN/CO Log highlight */
+        .co-total { font-weight: 700; font-size: 14px; color: var(--primary); padding: 10px 14px; background: #f0f7ff; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; }
+
+        /* Resolved row dim */
+        tr.resolved-row td { opacity: 0.5; }
+        tr.resolved-row:hover td { opacity: 0.8; }
+        .resolved-row-hidden { display: none !important; }
+
+        /* Issue resolved dim */
+        .issue-item.resolved-item { opacity: 0.45; }
+        .issue-item.resolved-item:hover { opacity: 0.7; }
+        .resolved-item-hidden { display: none !important; }
+
+        /* AI Insights Panel */
+        .insights-panel { background: linear-gradient(135deg, #f8f4ff 0%, #f0ecff 100%); border-radius: 10px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 20px; border: 1px solid #d8d0f0; }
+        .insights-panel h3 { font-size: 15px; font-weight: 700; color: #4a2d8a; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+        .insights-panel .insights-sub { font-size: 11px; color: #7f8c8d; margin-bottom: 16px; }
+        .insight-card { background: #fff; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid #7f8c8d; position: relative; }
+        .insight-card.priority-critical { border-left-color: var(--red); }
+        .insight-card.priority-high { border-left-color: #e67e22; }
+        .insight-card.priority-medium { border-left-color: var(--yellow); }
+        .insight-card.priority-low { border-left-color: var(--green); }
+        .insight-card.priority-strategic { border-left-color: #8e44ad; }
+        .insight-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; gap: 8px; }
+        .insight-title { font-weight: 700; font-size: 13px; color: var(--text); }
+        .insight-tags { display: flex; gap: 4px; flex-shrink: 0; flex-wrap: wrap; }
+        .insight-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+        .tag-cm { background: #e3f2fd; color: #1565c0; }
+        .tag-pm { background: #e8f5e9; color: #2e7d32; }
+        .tag-hvac { background: #fff3e0; color: #e65100; }
+        .tag-arch { background: #fce4ec; color: #c62828; }
+        .tag-cost { background: #fff8e1; color: #f57f17; }
+        .tag-schedule { background: #e0f2f1; color: #00695c; }
+        .insight-body { font-size: 12px; color: var(--text); line-height: 1.6; }
+        .insight-body strong { color: var(--primary); }
+        .insight-action { font-size: 11px; color: #4a2d8a; font-weight: 600; margin-top: 8px; padding-top: 8px; border-top: 1px solid #f0ecff; }
+        .insight-action::before { content: '→ '; }
+        .insight-dollar { font-size: 11px; font-weight: 700; color: var(--red); background: #fff0f0; padding: 2px 8px; border-radius: 4px; display: inline-block; }
+        .insight-savings { font-size: 11px; font-weight: 700; color: var(--green); background: #e8f5e9; padding: 2px 8px; border-radius: 4px; display: inline-block; }
+
+        /* Contact Directory */
+        .contact-toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+        .contact-search { flex: 1; min-width: 200px; padding: 10px 16px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; transition: border-color 0.2s; }
+        .contact-search:focus { outline: none; border-color: var(--primary-light); }
+        .contact-filter-btn { padding: 8px 16px; border: 2px solid var(--border); background: var(--card-bg); border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; }
+        .contact-filter-btn.active { border-color: var(--primary); background: var(--primary); color: #fff; }
+        .contact-filter-btn:hover { border-color: var(--primary-light); }
+        .contact-count { font-size: 13px; color: var(--text-light); font-weight: 600; }
+        .contact-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+        .contact-card { background: var(--card-bg); border-radius: 10px; padding: 16px 20px; border: 1px solid var(--border); display: flex; align-items: flex-start; gap: 14px; transition: box-shadow 0.2s, transform 0.15s; }
+        .contact-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-1px); }
+        .contact-card.hidden { display: none; }
+        .contact-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; flex-shrink: 0; }
+        .contact-info { flex: 1; min-width: 0; }
+        .contact-name { font-weight: 700; font-size: 15px; color: var(--text); }
+        .contact-org { font-size: 12px; color: var(--primary-light); font-weight: 600; margin-top: 1px; }
+        .contact-trade { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+        .contact-details { margin-top: 8px; display: flex; flex-direction: column; gap: 3px; }
+        .contact-detail { font-size: 12px; color: var(--text); display: flex; align-items: center; gap: 6px; }
+        .contact-detail a { color: var(--primary-light); text-decoration: none; }
+        .contact-detail a:hover { text-decoration: underline; }
+        .contact-icon { width: 14px; text-align: center; color: var(--text-light); font-size: 11px; }
+        .contact-table-view { display: none; }
+        .contact-table-view.active { display: block; }
+        .contact-grid-view.active { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+        .view-mode-btn { padding: 6px 12px; border: 2px solid var(--border); background: var(--card-bg); border-radius: 6px; cursor: pointer; font-size: 18px; line-height: 1; transition: all 0.2s; }
+        .view-mode-btn.active { border-color: var(--primary); background: var(--primary); color: #fff; }
+
+        /* Hidden sections */
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* Export Button */
+        .export-btn {
+            background: linear-gradient(135deg, #d4a843 0%, #c49a38 100%);
+            color: #1a3a5c;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(212,168,67,0.3);
+            letter-spacing: 0.3px;
+        }
+        .export-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(212,168,67,0.4);
+            background: linear-gradient(135deg, #e0b44e 0%, #d4a843 100%);
+        }
+        .export-btn:active { transform: translateY(0); }
+        .export-btn svg { width: 16px; height: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <h1>EDDC Flagship Commons</h1>
+        <div class="subtitle">24-28 North Park Row, Erie, PA 16501 &bull; BSI Job #125116B &bull; Data as of 2/24/2026</div>
+    </div>
+    <div class="header-right">
+        <span class="health-badge health-yellow">SCHEDULE: YELLOW</span>
+        <span class="health-badge health-yellow">BUDGET: YELLOW</span>
+        <span class="health-badge health-green">SAFETY: GREEN</span>
+        <button class="export-btn" onclick="generateBriefing()" title="Export a one-page meeting briefing PDF">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Briefing
+        </button>
+    </div>
+</div>
+
+<div class="view-toggle">
+    <button class="view-btn active" onclick="switchView('summary')">Summary</button>
+    <button class="view-btn" onclick="switchView('management')">Management Detail</button>
+    <button class="view-btn" onclick="switchView('field')">Field Activity</button>
+    <button class="view-btn" onclick="switchView('contacts')">Contacts</button>
+    <button class="view-btn" onclick="switchView('tenants')">Tenant Recruitment</button>
+    <button class="view-btn" onclick="switchView('forecast')">Financial Forecast</button>
+</div>
+
+<div class="main">
+
+<!-- ============ SUMMARY VIEW ============ -->
+<div id="view-summary" class="view-section active">
+
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label">Contract Sum</div>
+            <div class="kpi-value">$24.15M</div>
+            <div class="kpi-sub">Original: $1.21M + COs: $22.94M</div>
+        </div>
+        <div class="kpi-card green">
+            <div class="kpi-label">Billed to Date</div>
+            <div class="kpi-value">$2.89M</div>
+            <div class="kpi-sub">12% of contract &bull; Pay App #6</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Balance to Finish</div>
+            <div class="kpi-value">$21.26M</div>
+            <div class="kpi-sub">+ $288,870 retainage held</div>
+        </div>
+        <div class="kpi-card yellow">
+            <div class="kpi-label">Schedule</div>
+            <div class="kpi-value">Apr 2027</div>
+            <div class="kpi-sub">Projected completion &bull; 18-mo duration</div>
+            <div class="kpi-hover-dropdown">
+                <div class="schedule-hover">
+                    <div class="schedule-countdown" id="scheduleCountdown"></div>
+                    <div class="schedule-countdown-sub" id="scheduleCountdownSub"></div>
+                </div>
+            </div>
+        </div>
+        <div class="kpi-card yellow">
+            <div class="kpi-label">Current Phase</div>
+            <div class="kpi-value" style="font-size:18px">Foundation → Steel</div>
+            <div class="kpi-sub">Grade beams 90% &bull; Crane installed 2/25 &bull; Steel fab pending</div>
+            <div class="kpi-hover-dropdown">
+                <ul class="phase-list">
+                    <li class="phase-complete">Pre-Construction / Design</li>
+                    <li class="phase-complete">Permitting &amp; Approvals</li>
+                    <li class="phase-complete">Demolition &amp; Abatement</li>
+                    <li class="phase-complete">Site Work &amp; Utilities</li>
+                    <li class="phase-complete">Foundation / Grade Beams</li>
+                    <li class="phase-active">Structural Steel Erection</li>
+                    <li class="phase-future">Exterior Envelope (Glass &amp; Glazing)</li>
+                    <li class="phase-future">MEP Rough-In (HVAC, Plumbing, Electrical)</li>
+                    <li class="phase-future">Interior Framing &amp; Drywall</li>
+                    <li class="phase-future">Elevator Installation</li>
+                    <li class="phase-future">Fire Protection</li>
+                    <li class="phase-future">Interior Finishes</li>
+                    <li class="phase-future">Restaurant / Kitchen Build-Out</li>
+                    <li class="phase-future">Commissioning &amp; Punch List</li>
+                    <li class="phase-future">Certificate of Occupancy</li>
+                    <li class="phase-future">Tenant Fit-Out &amp; Move-In</li>
+                </ul>
+            </div>
+        </div>
+        <div class="kpi-card green">
+            <div class="kpi-label">Safety Record</div>
+            <div class="kpi-value">0</div>
+            <div class="kpi-sub">Incidents to date &bull; Weekly meetings held</div>
+        </div>
+    </div>
+
+    <!-- Safety Days Counter -->
+    <div class="safety-counter">
+        <div class="safety-days" id="safetyDays">153</div>
+        <div class="safety-text"><strong>Days Without a Recordable Incident</strong>Since project start (Oct 1, 2025) &bull; 0 incidents through 16 field updates &bull; 17 OAC safety meetings held</div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="card">
+            <h3>Budget by Trade Package</h3>
+            <div class="chart-container"><canvas id="budgetChart"></canvas></div>
+        </div>
+        <div class="card">
+            <h3>Payment Progress</h3>
+            <div class="chart-container"><canvas id="paymentChart"></canvas></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Key Milestones</h3>
+        <ul class="milestone-list">
+            <li class="milestone-item">
+                <span class="ms-dot complete"></span>
+                <div class="ms-info"><div class="ms-name">Caisson Package</div><div class="ms-dates">Jul – Oct 2025</div></div>
+                <div class="ms-pct" style="color:var(--green)">95%</div>
+            </li>
+            <li class="milestone-item">
+                <span class="ms-dot in-progress"></span>
+                <div class="ms-info">
+                    <div class="ms-name">Grade Beams & Foundations</div>
+                    <div class="ms-dates">Oct 2025 – Feb 2026 &bull; Stem walls: SW complete, NW 65% &bull; Elevator sump pit poured &bull; Interior pier caps poured</div>
+                </div>
+                <div class="ms-pct" style="color:var(--yellow)">90%</div>
+            </li>
+            <li class="milestone-item">
+                <span class="ms-dot in-progress"></span>
+                <div class="ms-info">
+                    <div class="ms-name">Marlena Building Demolition & Reconstruction</div>
+                    <div class="ms-dates">Oct 2025 – ongoing &bull; Floor reconstruction ongoing &bull; Asbestos RESOLVED (MM17) &bull; Staircase pier caps poured</div>
+                </div>
+                <div class="ms-pct" style="color:var(--yellow)">55%</div>
+            </li>
+            <li class="milestone-item">
+                <span class="ms-dot in-progress"></span>
+                <div class="ms-info">
+                    <div class="ms-name">Structural Steel (Shop Drawings & Fabrication)</div>
+                    <div class="ms-dates">Planned: Jan – Mar 2026 &bull; BSI coordinating revised shop drawings &bull; Fabrication pending approval</div>
+                </div>
+                <div class="ms-pct" style="color:var(--yellow)">15%</div>
+            </li>
+            <li class="milestone-item">
+                <span class="ms-dot in-progress"></span>
+                <div class="ms-info">
+                    <div class="ms-name">Electrical Underground</div>
+                    <div class="ms-dates">Jan 2026 – ongoing &bull; Vault installed, underground conduits started</div>
+                </div>
+                <div class="ms-pct" style="color:var(--yellow)">10%</div>
+            </li>
+            <li class="milestone-item">
+                <span class="ms-dot upcoming"></span>
+                <div class="ms-info"><div class="ms-name">Structural Steel Erection</div><div class="ms-dates">Planned: Mar – May 2026 &bull; 5th Street closures targeting 2/25-26 for crane &bull; BSI to give 2-3 wk notice</div></div>
+                <div class="ms-pct" style="color:var(--text-light)">0%</div>
+            </li>
+            <li class="milestone-item">
+                <span class="ms-dot upcoming"></span>
+                <div class="ms-info"><div class="ms-name">Concrete Slabs on Deck</div><div class="ms-dates">Planned: May – Jul 2026</div></div>
+                <div class="ms-pct" style="color:var(--text-light)">0%</div>
+            </li>
+            <li class="milestone-item">
+                <span class="ms-dot upcoming"></span>
+                <div class="ms-info"><div class="ms-name">Building Envelope (Roofing, Masonry, Glazing)</div><div class="ms-dates">Planned: Jun – Nov 2026</div></div>
+                <div class="ms-pct" style="color:var(--text-light)">0%</div>
+            </li>
+            <li class="milestone-item">
+                <span class="ms-dot upcoming"></span>
+                <div class="ms-info"><div class="ms-name">MEP Rough-In & Interior Finishes</div><div class="ms-dates">Planned: Sep 2026 – Mar 2027</div></div>
+                <div class="ms-pct" style="color:var(--text-light)">0%</div>
+            </li>
+            <li class="milestone-item">
+                <span class="ms-dot upcoming"></span>
+                <div class="ms-info"><div class="ms-name">Substantial Completion</div><div class="ms-dates">Target: April 7, 2027</div></div>
+                <div class="ms-pct" style="color:var(--text-light)">—</div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h3>Active Issues Requiring Attention</h3>
+        <div class="filter-bar">
+            <label class="filter-toggle"><input type="checkbox" id="hideResolvedIssues" onchange="toggleResolvedIssues()"> Hide resolved items</label>
+        </div>
+        <div class="issue-item">
+            <div class="issue-header">
+                <span class="issue-title">KAHN Architect Fee Increase — PCN 002</span>
+                <span class="status-badge status-new">New — Requires Board Action</span>
+            </div>
+            <div class="issue-desc">KAHN requesting $420,530 fee increase (from $1,011,130 to $1,431,660) due to project scope growth from $17.7M to $25.1M. Hours logged at 176% of budget (11,843 actual vs 6,740 budgeted). Danaher Whiting letter cites 10 scope change reasons including Marlena wall deterioration, Penelec changes, and skylight tariff issues.</div>
+            <div class="issue-owner">Owner: EDDC Board / KAHN</div>
+        </div>
+        <div class="issue-item resolved-item">
+            <div class="issue-header">
+                <span class="issue-title">Asbestos — Marlena Building</span>
+                <span class="status-badge status-resolved">Resolved — MM17</span>
+            </div>
+            <div class="issue-desc">Asbestos discovered during Marlena demolition. Abatement completed and issue resolved as of OAC Meeting #17 (2/10/2026).</div>
+            <div class="issue-owner">Owner: BSI</div>
+        </div>
+        <div class="issue-item resolved-item">
+            <div class="issue-header">
+                <span class="issue-title">Penelec Overhead Lines Removal</span>
+                <span class="status-badge status-resolved">Resolved 3/2/2026</span>
+            </div>
+            <div class="issue-desc">RESOLVED — Penelec Invoice #91028246 paid 3/2/2026 ($12,208.18) for overhead pole line removal from W 5th St (State to Peach). Work Request #64195637. EDU payment gate cleared — waterline permit can now proceed.</div>
+            <div class="issue-owner">Owner: EDDC / BSI</div>
+        </div>
+        <div class="issue-item" style="border-left: 4px solid var(--red);">
+            <div class="issue-header">
+                <span class="issue-title">Penelec Electrical Service — Splice Box Rejected (EP-601)</span>
+                <span class="status-badge status-new" style="background:#c0392b; color:#fff;">CRITICAL — New</span>
+            </div>
+            <div class="issue-desc"><strong>DO NOT CONSTRUCT TO CURRENT PLANS.</strong> Penelec has rejected the 1200A splice cabinet shown on KAHN drawing EP-601 (One-Line Diagram — Normal Power). Penelec requires: (1) A service-sized main non-fused disconnect switch for the entire building instead of the splice box, and (2) Individual service-sized non-fused disconnect switches ahead of each CT meter compartment. KAHN drawings have NOT been approved by Penelec for construction — any work proceeding without approval is at EDDC's risk and cost. New Penelec rep assigned: contact is now the rep on DR#345923557 (Brian Paganie no longer with Penelec). Penelec customer guide for electric service: firstenergycorp.com/content/dam/customer/service%20requests/files/Customer-Guide-for-Electric-Service-PA.pdf</div>
+            <div class="issue-owner">Owner: Kahn / BSI / EDDC — Penelec DR#345923557</div>
+        </div>
+        <div class="issue-item">
+            <div class="issue-header">
+                <span class="issue-title">Domestic & Fire Water Service — City of Erie Permit</span>
+                <span class="status-badge status-ongoing">Ongoing since MM11</span>
+            </div>
+            <div class="issue-desc">EWW approved Urban Engineers alternate plan as one-time non-precedent exception — uses existing 2021 taps with pipe bends. FP line: 77 LF of 6" DIP (~110 LF total). Domestic: 79 LF of 4" DIP (~113 LF total). Both under 100' from curb valve. EDDC responsible from curb valves to building. BSI finalizing permit paperwork with City (MM17). EDU payment completed 3/2/2026 — waterline permit gate cleared.</div>
+            <div class="issue-owner">Owner: BSI / EDDC / City of Erie</div>
+        </div>
+        <div class="issue-item">
+            <div class="issue-header">
+                <span class="issue-title">Structural Steel Shop Drawings</span>
+                <span class="status-badge status-ongoing">Critical Path</span>
+            </div>
+            <div class="issue-desc">DH Steel revised shop drawings incorporating Drawing Issues 08 & 09 expected by 2/1/26. Fabrication pending approval — delay impacts steel erection schedule. 5th Street closures needed for erection (BSI to give 2-3 weeks notice).</div>
+            <div class="issue-owner">Owner: Kahn / DH Steel / BSI</div>
+        </div>
+        <div class="issue-item">
+            <div class="issue-header">
+                <span class="issue-title">5th Street Closures — Crane & Steel Erection</span>
+                <span class="status-badge status-ongoing">Updated — MM17</span>
+            </div>
+            <div class="issue-desc">5th Street closures targeting 2/25-26 for Morrow Crane delivery and installation. Tower crane foundation poured and ready. Additional closures needed for structural steel erection (Mar-May 2026). BSI to give 2-3 weeks notice.</div>
+            <div class="issue-owner">Owner: BSI / EDDC</div>
+        </div>
+        <div class="issue-item">
+            <div class="issue-header">
+                <span class="issue-title">RFI 100 — Trash Compactor / ProWaste Coordination</span>
+                <span class="status-badge status-ongoing">Updated — MM17</span>
+            </div>
+            <div class="issue-desc">Kahn finalizing trash compactor substitution review (RFI 100). ProWaste coordination ongoing per MM17. Decision pending.</div>
+            <div class="issue-owner">Owner: Kahn / BSI</div>
+        </div>
+        <div class="issue-item">
+            <div class="issue-header">
+                <span class="issue-title">Electrified Doors Hardware Changes — Drawing Issue 06</span>
+                <span class="status-badge status-new">New — MM17</span>
+            </div>
+            <div class="issue-desc">Hardware changes for electrified doors identified in Drawing Issue 06. Scope and cost evaluation ongoing (MM17).</div>
+            <div class="issue-owner">Owner: Kahn / BSI</div>
+        </div>
+        <div class="issue-item">
+            <div class="issue-header">
+                <span class="issue-title">Electrical Distribution Service Changes — Drawing Issue 06</span>
+                <span class="status-badge status-new">New — MM17</span>
+            </div>
+            <div class="issue-desc">Electrical distribution service upgrade changes identified in Drawing Issue 06. Scope and cost evaluation ongoing (MM17).</div>
+            <div class="issue-owner">Owner: Kahn / BSI</div>
+        </div>
+        <div class="issue-item" style="border-left: 4px solid var(--yellow);">
+            <div class="issue-header">
+                <span class="issue-title">RTI Bulk Cooking Oil System — Location Selection In Progress</span>
+                <span class="status-badge status-ongoing" style="background:#f39c12; color:#fff;">Active — Siting</span>
+            </div>
+            <div class="issue-desc"><strong>Vendor selected: Restaurant Technologies (RTI).</strong> Total Oil Management system (fresh oil + waste oil tanks with flex lines to fryers). EDDC currently scouting tank location. Key constraints: Fill box must be on exterior wall within 30' of truck parking (truck is 32' long). Indoor tanks are 81" tall × 28" dia, ~1,400 lbs each, need 120V/20A dedicated circuit, must be in 60°F+ heated space, NOT within 3' of electrical panel. Outdoor option available (88"×48"×50", 1,300 lbs each) requiring concrete pad (6'×9'×4" thick, 3000 psi) and electrical disconnect. Flex oil lines max 120' from tank to fryers (standard). RTI installs the week after fryers arrive, 6-8 hours total. Prerequisites: parking lot complete, floors/walls done, permanent power to building.</div>
+            <div class="issue-owner">Owner: EDDC — RTI (Restaurant Technologies)</div>
+        </div>
+    </div>
+
+    <!-- AI INSIGHTS PANEL -->
+    <div class="insights-panel">
+        <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a2d8a" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> COO Decision Intelligence</h3>
+        <div class="insights-sub">AI-generated insights based on project data through FU16 &amp; MM17 &bull; Filtered through Construction Manager, Property Manager, HVAC/MEP, and Architect lenses</div>
+
+        <!-- INSIGHT 1: PCN 002 Negotiation -->
+        <div class="insight-card priority-critical">
+            <div class="insight-header">
+                <span class="insight-title">PCN 002: Negotiate Now Before Steel Erection Leverage Shifts</span>
+                <div class="insight-tags">
+                    <span class="insight-tag tag-cm">Construction Mgr</span>
+                    <span class="insight-tag tag-cost">Cost Control</span>
+                </div>
+            </div>
+            <div class="insight-body">
+                KAHN's $420,530 fee increase uses a straight 5.7% multiplier on the new $25.1M budget — an automatic escalation model. But <strong>their hours data tells a different story</strong>: Architectural (233% over) and Electrical (235% over) drove the overrun, while Civil and Landscape were under budget. A hours-justified counter of <strong>$250K–$320K</strong> is defensible. <strong>Key leverage</strong>: KAHN needs EDDC's approval to proceed with remaining CA phase work. Once steel erection starts (Mar 2026), EDDC loses negotiating position because switching architects mid-construction is impractical. <span class="insight-dollar">At Risk: $100K–$170K in avoidable cost</span>
+            </div>
+            <div class="insight-action">Schedule board discussion THIS WEEK. Present hours-justified counter with the PCN 002 analysis memo. Negotiate before steel erection gives KAHN implicit leverage.</div>
+        </div>
+
+        <!-- INSIGHT: Penelec Electrical Service — Splice Box Rejection -->
+        <div class="insight-card priority-critical">
+            <div class="insight-header">
+                <span class="insight-title">STOP WORK RISK — Penelec Rejected EP-601 Electrical Service Design</span>
+                <div class="insight-tags">
+                    <span class="insight-tag tag-cm">Construction Mgr</span>
+                    <span class="insight-tag tag-arch">Architect</span>
+                    <span class="insight-tag tag-cost">Cost Control</span>
+                </div>
+            </div>
+            <div class="insight-body">
+                Penelec has explicitly rejected the 1200A splice cabinet on KAHN's one-line diagram (EP-601) and warned <strong>"Do not construct to your plans as they have not been approved by Penelec."</strong> This affects the entire building electrical service entrance — the main switchboard feed from Penelec's transformer. Two changes required: <strong>(1)</strong> Replace the splice box with a service-sized main non-fused disconnect switch for the whole building. <strong>(2)</strong> Add individual service-sized non-fused disconnect switches ahead of each CT meter compartment. This is a <strong>design change that flows upstream to KAHN</strong> — they need to revise EP-601 and potentially re-route conduit and panel layouts. <strong>Cost risk:</strong> If Lathrop Electric or BSI orders or installs the splice cabinet before KAHN issues revised drawings, EDDC pays for the rework. The longer this sits, the more likely field work gets ahead of the approved design. <strong>Schedule risk:</strong> Electrical rough-in cannot proceed in the service entrance area until Penelec approves the revised design. This also connects to Drawing Issue 06 (electrified doors/electrical distribution) — any changes to the main service ripple into panel sizing and tenant metering. <span class="insight-dollar">Rework risk: $15K–$50K+ if installed before correction</span>
+            </div>
+            <div class="insight-action"><strong>Immediate actions:</strong> (1) Notify KAHN TODAY — they must revise EP-601 to replace splice box with non-fused disconnect switches per Penelec requirements. (2) Issue a hold to BSI/Lathrop Electric — no electrical service entrance work until revised drawings are approved by Penelec. (3) Get KAHN's revised EP-601 to Penelec for approval under DR#345923557. (4) Confirm with the new Penelec rep that Christopher Beyer is still your billing contact or if there's a separate design review contact. Track turnaround — Penelec approval timelines can stretch 4-8 weeks.</div>
+        </div>
+
+        <!-- INSIGHT 2: Penelec EDU — RESOLVED -->
+        <div class="insight-card priority-low" style="border-left-color: var(--green); opacity: 0.75;">
+            <div class="insight-header">
+                <span class="insight-title" style="color: var(--green);">&#10003; RESOLVED — Penelec EDU Payment Completed 3/2/2026</span>
+                <div class="insight-tags">
+                    <span class="insight-tag tag-cm">Construction Mgr</span>
+                    <span class="insight-tag tag-schedule">Schedule</span>
+                </div>
+            </div>
+            <div class="insight-body">
+                Penelec Invoice #91028246 paid <strong>$12,208.18 on 3/2/2026</strong> for overhead pole line removal (W 5th St, State to Peach). Work Request #64195637. <strong>The waterline permit gate is now cleared</strong> — BSI can proceed with City of Erie permit paperwork. This unblocks the fire protection and domestic water critical paths to certificate of occupancy.
+            </div>
+            <div class="insight-action"><strong>Next step:</strong> Confirm with BSI that the waterline permit application has been submitted to the City. Track permit approval timeline — this is now the next gate on the water service critical path.</div>
+        </div>
+
+        <!-- INSIGHT 3: Steel Critical Path — Crane Utilization -->
+        <div class="insight-card priority-high">
+            <div class="insight-header">
+                <span class="insight-title">Tower Crane Is Installed — Clock Is Ticking on Idle Cost</span>
+                <div class="insight-tags">
+                    <span class="insight-tag tag-cm">Construction Mgr</span>
+                    <span class="insight-tag tag-cost">Cost Control</span>
+                </div>
+            </div>
+            <div class="insight-body">
+                Morrow Crane delivered 2/25 but <strong>steel fabrication hasn't started</strong> because shop drawings are still being coordinated. Tower crane rental typically runs <strong>$15K–$25K/month</strong> (verify with BSI's Morrow contract). Every week the crane sits waiting for steel is pure burn. DH Steel shop drawings were supposed to incorporate DI-08 &amp; DI-09 by 2/1/26 — they're now 3+ weeks late. <strong>Ask BSI for the contractual fabrication lead time once approved</strong> — if it's 6–8 weeks, you're looking at steel erection potentially slipping to late April/May.
+            </div>
+            <div class="insight-action">Request written crane rental rate from BSI. Get a firm shop drawing approval date from KAHN and fabrication lead time from DH Steel. Calculate total idle crane cost and use it to pressure the approval chain.</div>
+        </div>
+
+        <!-- INSIGHT 4: HVAC/MEP — Influence Specs Now -->
+        <div class="insight-card priority-high">
+            <div class="insight-header">
+                <span class="insight-title">$2.08M in HVAC Is 0% Complete — Your Window to Influence Specs Is Closing</span>
+                <div class="insight-tags">
+                    <span class="insight-tag tag-hvac">HVAC/MEP</span>
+                    <span class="insight-tag tag-pm">Property Mgr</span>
+                    <span class="insight-tag tag-cost">Cost Control</span>
+                </div>
+            </div>
+            <div class="insight-body">
+                As the person who will <strong>operate this building for decades</strong>, you should be driving MEP equipment selections right now — before shop drawings lock in choices. Key decisions that affect long-term operating cost: <strong>(1)</strong> HVAC system type — VRF vs. traditional split systems vs. water-source heat pumps. VRF typically saves 20–30% on energy but costs more upfront. For a mixed-use building with restaurant, retail, and office loads, <strong>VRF with dedicated OA units gives you zone-by-zone tenant metering</strong>. <strong>(2)</strong> Controls platform — push for <strong>Johnson Controls Metasys or Niagara/Tridium</strong> since you already know Metasys from your other properties. Standardizing across your portfolio cuts training costs and lets you monitor everything from one dashboard. <strong>(3)</strong> Electrical metering — spec individual tenant meters NOW or you'll be stuck estimating utility splits forever. <span class="insight-savings">Potential 15–25 yr savings: $200K–$500K in operating costs</span>
+            </div>
+            <div class="insight-action">Request the MEP spec sections from KAHN now. Schedule a design review meeting focused on HVAC system type, controls platform, and tenant metering BEFORE shop drawings begin. Flag any value engineering opportunities.</div>
+        </div>
+
+        <!-- INSIGHT 5: Electrified Doors — Access Control Strategy -->
+        <div class="insight-card priority-medium">
+            <div class="insight-header">
+                <span class="insight-title">DI-06 Electrified Doors: Lock In Access Control Strategy Before Hardware Ships</span>
+                <div class="insight-tags">
+                    <span class="insight-tag tag-pm">Property Mgr</span>
+                    <span class="insight-tag tag-arch">Architect</span>
+                </div>
+            </div>
+            <div class="insight-body">
+                Drawing Issue 06 includes hardware changes for electrified doors. This isn't just a construction detail — it's a <strong>property management decision</strong>. The door hardware you spec now determines your access control system for the life of the building. Key considerations: <strong>(1)</strong> Cloud-based vs. on-premise access control — cloud systems (Brivo, Openpath) let you manage tenant access remotely and adjust permissions without site visits. <strong>(2)</strong> Integration with tenant billing — some systems log access for after-hours HVAC activation (ties into your Metasys goal). <strong>(3)</strong> Multi-tenant flexibility — you need a system that lets you re-key digitally when tenants turn over, not one requiring physical re-cores at $200–$500/door. <strong>(4)</strong> Common area scheduling — Restaurant hours vs. office hours vs. residential access requires zone-based scheduling.
+            </div>
+            <div class="insight-action">Before KAHN finalizes DI-06 hardware specs, provide your access control requirements: cloud-managed, multi-tenant zones, integration-ready for BAS/Metasys. This avoids costly retrofits later.</div>
+        </div>
+
+        <!-- INSIGHT 6: Electrical Distribution — Tenant Flexibility -->
+        <div class="insight-card priority-medium">
+            <div class="insight-header">
+                <span class="insight-title">Electrical Distribution Changes: Design for Tenant Turnover, Not Just Day One</span>
+                <div class="insight-tags">
+                    <span class="insight-tag tag-pm">Property Mgr</span>
+                    <span class="insight-tag tag-hvac">HVAC/MEP</span>
+                    <span class="insight-tag tag-cost">Cost Control</span>
+                </div>
+            </div>
+            <div class="insight-body">
+                The DI-06 electrical distribution changes are being evaluated for scope/cost. As someone managing tenant recruitment, <strong>think about what happens when Tenant A leaves and Tenant B needs different power</strong>. Questions to push KAHN on: <strong>(1)</strong> Are panels sized with 20–25% spare capacity for future tenant loads? A restaurant tenant pulling 200A today might be replaced by a tech office needing different circuits. <strong>(2)</strong> Individual tenant disconnects — can you isolate and de-energize a single tenant's space without affecting neighbors? Critical for buildout work. <strong>(3)</strong> EV charging infrastructure — even if you don't install chargers now, running conduit to the parking area during construction costs 10% of what it costs to retrofit later. <strong>(4)</strong> Restaurant power — commercial kitchen loads are 3–5x typical retail. Make sure the distribution supports the full restaurant buildout.
+            </div>
+            <div class="insight-action">Add spare panel capacity and tenant isolation requirements to KAHN's DI-06 scope. Request conduit pathways for future EV charging. These cost pennies now vs. thousands later.</div>
+        </div>
+
+        <!-- INSIGHT 7: Water Service — Long-Term Maintenance -->
+        <div class="insight-card priority-medium">
+            <div class="insight-header">
+                <span class="insight-title">EWW Alternate Water Plan: EDDC Owns the Pipe — Plan for Maintenance Access</span>
+                <div class="insight-tags">
+                    <span class="insight-tag tag-pm">Property Mgr</span>
+                    <span class="insight-tag tag-cm">Construction Mgr</span>
+                </div>
+            </div>
+            <div class="insight-body">
+                EWW approved the alternate plan using 2021 taps with pipe bends, but <strong>EDDC is responsible from curb valves to building</strong>. That's ~77 LF of 6" DIP (fire protection) and ~79 LF of 4" DIP (domestic) that you own and maintain. Key items to address NOW during construction: <strong>(1)</strong> Insist on tracer wire and location markers — you'll need to find these pipes in 10 years. <strong>(2)</strong> Verify pipe bedding and backfill spec meets EDDC's standards, not just minimum code. Settling causes breaks. <strong>(3)</strong> Get as-built drawings locked in with GPS coordinates of bends and connections. <strong>(4)</strong> Confirm isolation valve locations allow you to shut off domestic without killing fire protection and vice versa. A single shutoff for both means any repair takes the sprinkler system offline.
+            </div>
+            <div class="insight-action">Add tracer wire, GPS as-built, and independent isolation valve requirements to BSI's scope for the water service install. Negligible cost now, prevents major headaches later.</div>
+        </div>
+
+        <!-- INSIGHT 8: GC Conditions Burn Rate -->
+        <div class="insight-card priority-high">
+            <div class="insight-header">
+                <span class="insight-title">BSI General Conditions at 30% Burned, Project at 12% — Watch This Ratio</span>
+                <div class="insight-tags">
+                    <span class="insight-tag tag-cm">Construction Mgr</span>
+                    <span class="insight-tag tag-cost">Cost Control</span>
+                </div>
+            </div>
+            <div class="insight-body">
+                BSI has billed <strong>$152,484 of $508,280 in General Conditions (30%)</strong>, but the overall project is only 12% complete. GC is a time-based cost — it accrues regardless of physical progress. At the current monthly rate (~$25K/mo), BSI will exhaust GC by approximately <strong>month 20 of an 18-month project</strong>. Any schedule slippage pushes this into overrun territory. This is the line item that balloons silently during delays. <strong>Combined with tower crane rental, every month of delay costs approximately $40K–$50K in overhead alone</strong>.
+            </div>
+            <div class="insight-action">Request BSI's GC burn forecast vs. remaining schedule. If they project overrun, negotiate a GC cap or monthly cap now while you have leverage (early in the project). Track GC % vs. project % monthly as a leading indicator.</div>
+        </div>
+
+        <!-- INSIGHT 9: RTI Oil System / Restaurant Ops -->
+        <div class="insight-card priority-medium">
+            <div class="insight-header">
+                <span class="insight-title">RTI Oil System Selected — Location Decision Drives Grease Trap, Exhaust, and Electrical Coordination</span>
+                <div class="insight-tags">
+                    <span class="insight-tag tag-cm">Construction Mgr</span>
+                    <span class="insight-tag tag-pm">Property Mgr</span>
+                    <span class="insight-tag tag-hvac">HVAC/MEP</span>
+                </div>
+            </div>
+            <div class="insight-body">
+                <strong>RTI (Restaurant Technologies) is confirmed as the bulk cooking oil vendor.</strong> The location decision is now the critical path item and it cascades into three bigger coordination items: <strong>(1)</strong> Tank placement — indoor tanks (81" tall, ~1,400 lbs each, need 120V/20A dedicated circuit, heated 60°F+ space, NOT within 3' of electrical panel) vs. outdoor tanks (88"×48"×50", need concrete pad 6'×9'×4" at 3000 psi, electrical disconnect). Indoor is simpler for Erie winters. <strong>(2)</strong> Fill box location — must be on an exterior wall within 30' of where the RTI delivery truck (32' long) can park. The fill box requires a 4" core hole at 48-60" height. This drives which exterior wall works and whether truck access is viable from N. Park Row or 5th St side. <strong>(3)</strong> Flex line routing — max 120' from tank to fryers (standard), routed through ceiling via 4" PVC chase. The tank location must be within practical routing distance of both restaurant kitchens (109 &amp; 117 per EP-601). Grease trap sizing still depends on recycling frequency, and grease duct routing must coordinate with structural steel — adding ducts after steel is up requires expensive fire-rated shaft work.
+            </div>
+            <div class="insight-action"><strong>Immediate:</strong> Walk the building with BSI to identify 2-3 candidate tank locations considering truck access, fill box wall, and flex line distance to Kitchens 109/117. RTI installs the week after fryers arrive (6-8 hrs total) — prerequisites are parking lot complete, floors/walls done, and permanent power to building. Coordinate with KAHN to finalize kitchen layout before MEP shop drawings.</div>
+        </div>
+
+        <!-- INSIGHT 10: Commissioning / Warranty Planning -->
+        <div class="insight-card priority-strategic">
+            <div class="insight-header">
+                <span class="insight-title">Start Commissioning Planning Now — Not 6 Months Before Occupancy</span>
+                <div class="insight-tags">
+                    <span class="insight-tag tag-hvac">HVAC/MEP</span>
+                    <span class="insight-tag tag-pm">Property Mgr</span>
+                    <span class="insight-tag tag-schedule">Schedule</span>
+                </div>
+            </div>
+            <div class="insight-body">
+                With a mixed-use building (restaurant, retail, office, potential residential) and a target completion of April 2027, commissioning will be complex. <strong>The single biggest mistake owners make is treating commissioning as a punch-list activity</strong>. Instead: <strong>(1)</strong> Hire an independent commissioning agent (CxA) now — they review MEP submittals during construction and catch design conflicts early. Typical cost: 0.5–1% of MEP budget ($15K–$30K). <strong>(2)</strong> Require point-to-point BAS checkout in the spec — every VAV box, every damper, every valve verified before you accept the building. <strong>(3)</strong> Negotiate 2-year warranty on HVAC with a required seasonal checkout (summer AND winter performance verification). <strong>(4)</strong> Plan for Metasys graphics and trending from day one — not as an add-on after move-in. <span class="insight-savings">Avoided cost: $50K–$150K in first-year warranty callbacks and energy waste</span>
+            </div>
+            <div class="insight-action">Add independent CxA to the project budget (discuss with board). Verify KAHN's spec includes BAS commissioning requirements. This investment pays for itself within the first year of operations.</div>
+        </div>
+
+        <!-- INSIGHT 11: Billing Velocity as Leading Indicator -->
+        <div class="insight-card priority-medium">
+            <div class="insight-header">
+                <span class="insight-title">Watch the Billing Rebound — It's Your Best Real-Time Progress Indicator</span>
+                <div class="insight-tags">
+                    <span class="insight-tag tag-cm">Construction Mgr</span>
+                    <span class="insight-tag tag-cost">Cost Control</span>
+                </div>
+            </div>
+            <div class="insight-body">
+                Monthly draws dropped from $581K (Oct) to $218K (Feb) — expected during the foundation-to-steel transition. But <strong>when steel erection starts, you should see draws jump back to $400K–$600K/month</strong>. If they don't, that's a red flag that work isn't progressing as reported. Use billing velocity as a cross-check against BSI's percent-complete claims. Also watch for <strong>front-loading</strong>: if any trade's billed percentage significantly exceeds physical completion (e.g., 50% billed but only 30% installed), that's a retainage risk.
+            </div>
+            <div class="insight-action">Create a monthly billing velocity target (expected draw per month) and track actual vs. expected. Flag any trade where billed % exceeds installed % by more than 10 points.</div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============ MANAGEMENT DETAIL VIEW ============ -->
+<div id="view-management" class="view-section">
+
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label">Original Contract</div>
+            <div class="kpi-value">$1.21M</div>
+            <div class="kpi-sub">Caisson package base</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Change Orders</div>
+            <div class="kpi-value">$22.94M</div>
+            <div class="kpi-sub">New construction scope added</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Current Contract</div>
+            <div class="kpi-value">$24,148,540</div>
+            <div class="kpi-sub">As of Pay App #6</div>
+        </div>
+        <div class="kpi-card green">
+            <div class="kpi-label">Total Completed</div>
+            <div class="kpi-value">$2,888,697</div>
+            <div class="kpi-sub">12% complete</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Retainage Held</div>
+            <div class="kpi-value">$288,870</div>
+            <div class="kpi-sub">10% of completed work</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Current Payment Due</div>
+            <div class="kpi-value">$217,612</div>
+            <div class="kpi-sub">Pay App #6 — Period to 2/20/2026</div>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="card">
+            <h3>Budget vs. Billed by Trade</h3>
+            <div class="chart-container"><canvas id="tradeChart"></canvas></div>
+        </div>
+        <div class="card">
+            <h3>Monthly Billing Trend</h3>
+            <div class="chart-container"><canvas id="billingTrend"></canvas></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Detailed Budget Breakdown — Pay App #6 (Period to 2/20/2026)</h3>
+        <div class="table-wrap">
+            <table id="budgetTable">
+                <thead>
+                    <tr>
+                        <th>Trade / Item</th>
+                        <th>Scheduled Value</th>
+                        <th>Completed to Date</th>
+                        <th>% Complete</th>
+                        <th>Balance to Finish</th>
+                        <th>This Period</th>
+                    </tr>
+                </thead>
+                <tbody id="budgetTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Change Order Items (CI Log)</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>CI #</th><th>Description</th><th>Amount</th><th>% Complete</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>CI 01A</td><td>Concrete Grade Beams</td><td>$640,150</td><td>85%</td><td><span class="status-badge status-ongoing">In Progress</span></td></tr>
+                    <tr><td>CI 02</td><td>BSI General Conditions</td><td>$508,280</td><td>30%</td><td><span class="status-badge status-ongoing">In Progress</span></td></tr>
+                    <tr><td>CI 03</td><td>Structural Steel</td><td>$2,458,200</td><td>15%</td><td><span class="status-badge status-ongoing">Procurement</span></td></tr>
+                    <tr><td>CI 04</td><td>General Construction</td><td>$8,763,100</td><td>3%</td><td><span class="status-badge status-new">Early Stage</span></td></tr>
+                    <tr><td>CI 05</td><td>Glass & Glazing</td><td>$3,698,300</td><td>0%</td><td><span class="status-badge status-new">Not Started</span></td></tr>
+                    <tr><td>CI 06</td><td>Elevator</td><td>$349,900</td><td>50%</td><td><span class="status-badge status-ongoing">Deposit Paid</span></td></tr>
+                    <tr><td>CI 07</td><td>HVAC</td><td>$2,080,000</td><td>0%</td><td><span class="status-badge status-new">Not Started</span></td></tr>
+                    <tr><td>CI 08</td><td>Electrical</td><td>$1,273,400</td><td>3%</td><td><span class="status-badge status-ongoing">Vault + Conduits</span></td></tr>
+                    <tr><td>CI 09</td><td>Fire Protection</td><td>$310,700</td><td>0%</td><td><span class="status-badge status-new">Not Started</span></td></tr>
+                    <tr><td>CI 10</td><td>Plumbing</td><td>$591,600</td><td>2%</td><td><span class="status-badge status-ongoing">Sleeves</span></td></tr>
+                    <tr><td>CI 11</td><td>CM Fee</td><td>$741,000</td><td>10%</td><td><span class="status-badge status-ongoing">Monthly</span></td></tr>
+                    <tr><td>CI 12</td><td>Miscellaneous CIs (49+ items)</td><td>$1,524,160</td><td>Varies</td><td><span class="status-badge status-ongoing">Various</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Architect Fee Status (KAHN — Albert Kahn Associates)</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Item</th><th>Original</th><th>Revised</th><th>Change</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Construction Budget Basis</td><td>$17,700,000</td><td>$25,116,850</td><td style="color:var(--red);font-weight:700">+$7,416,850</td>
+                        <td><span class="status-badge status-ongoing">Escalation</span></td>
+                    </tr>
+                    <tr>
+                        <td>AE Fee (5.7%)</td><td>$1,011,130</td><td>$1,431,660</td><td style="color:var(--red);font-weight:700">+$420,530</td>
+                        <td><span class="status-badge status-new">PCN 002 Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td>Hours — Budgeted vs Actual</td><td>6,740 hrs</td><td>11,843 hrs</td><td style="color:var(--red);font-weight:700">176% of budget</td>
+                        <td><span class="status-badge status-ongoing">Over Budget</span></td>
+                    </tr>
+                    <tr>
+                        <td>Architectural Hours</td><td>Budgeted</td><td>233% over</td><td>—</td>
+                        <td><span class="status-badge status-ongoing">Key Overrun</span></td>
+                    </tr>
+                    <tr>
+                        <td>Structural Hours</td><td>Budgeted</td><td>219% over</td><td>—</td>
+                        <td><span class="status-badge status-ongoing">Key Overrun</span></td>
+                    </tr>
+                    <tr>
+                        <td>Electrical Hours</td><td>Budgeted</td><td>235% over</td><td>—</td>
+                        <td><span class="status-badge status-ongoing">Key Overrun</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div style="font-size:12px;color:var(--text-light);margin-top:12px;padding:10px;background:#fff8e1;border-radius:6px">
+            <strong>Scope Change Drivers (per Danaher Whiting letter 1/20/2026):</strong> Marlena north wall deterioration, Penelec electrical service changes, skylight tariff issues, office space increase, 4th floor/roof terrace additions, trash room iterations, monumental stair changes, elevator access rework, food court access modifications, historical design approach rework. KAHN requesting board meeting to discuss fee adjustment.
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Payment Application History</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Pay App #</th><th>Period To</th><th>Contract Sum</th><th>Completed</th><th>% Complete</th><th>Retainage</th><th>Payment Due</th><th>Cumulative Paid</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>9/2/2025</td><td>$1,209,950</td><td>$506,678</td><td>42%</td><td>$50,668</td><td>$456,010</td><td>$456,010</td></tr>
+                    <tr><td>2</td><td>10/24/2025</td><td>$1,209,950</td><td>$1,152,350</td><td>95%</td><td>$115,235</td><td>$581,105</td><td>$1,037,115</td></tr>
+                    <tr><td>3</td><td>11/21/2025</td><td>$24,148,540</td><td>$1,796,974</td><td>7%</td><td>$179,697</td><td>$580,161</td><td>$1,617,276</td></tr>
+                    <tr><td>4</td><td>12/19/2025</td><td>$24,148,540</td><td>$2,337,717</td><td>10%</td><td>$233,772</td><td>$486,669</td><td>$2,103,945</td></tr>
+                    <tr><td>5</td><td>1/16/2026</td><td>$24,148,540</td><td>$2,646,906</td><td>11%</td><td>$264,691</td><td>$278,271</td><td>$2,382,216</td></tr>
+                    <tr style="font-weight:700;background:#f0f7ff"><td>6</td><td>2/20/2026</td><td>$24,148,540</td><td>$2,888,697</td><td>12%</td><td>$288,870</td><td>$217,612</td><td>$2,599,828</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="billing-note"><strong>Note:</strong> Monthly draws declining from $581K (Oct) to $218K (Feb) is expected — foundation phase winding down, structural steel fabrication is offsite with no billable install yet. Next billing increase anticipated with steel erection start (Mar 2026) and tower crane mobilization costs.</div>
+    </div>
+
+    <!-- PCN / CHANGE ORDER LOG -->
+    <div class="card">
+        <h3>Proposed Change Notices (PCN) / Change Order Log</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>PCN #</th><th>Description</th><th>Submitted</th><th>Amount</th><th>GMP Impact</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>PCN 001</td><td>GMP Amendment — New construction scope (caisson → full build)</td><td>Nov 2025</td><td>$22,938,590</td><td>$24,148,540</td><td><span class="status-badge status-resolved">Approved</span></td></tr>
+                    <tr style="background:#fff8e1"><td>PCN 002</td><td>KAHN Architect Fee Increase — scope growth from $17.7M to $25.1M</td><td>Jan 2026</td><td style="color:var(--red);font-weight:700">$420,530</td><td>TBD</td><td><span class="status-badge status-new">Pending Board Action</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="co-total">
+            <span>Approved PCN/CO Total: $22,938,590</span>
+            <span style="color:var(--red)">Pending: $420,530 (PCN 002)</span>
+        </div>
+    </div>
+
+    <!-- RFI LOG -->
+    <div class="card">
+        <h3>Request for Information (RFI) Log</h3>
+        <div class="filter-bar">
+            <span style="font-size:12px;color:var(--text-light)">Open: <strong>2</strong> &nbsp;|&nbsp; Closed: <strong>0</strong> &nbsp;|&nbsp; Avg Response: <strong>—</strong></span>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>RFI #</th><th>Subject</th><th>Submitted By</th><th>Date</th><th>Assigned To</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>RFI 100</td><td>Trash Compactor Substitution / ProWaste Coordination</td><td>BSI</td><td>MM16</td><td>Kahn</td><td><span class="status-badge status-ongoing">Under Review</span></td></tr>
+                    <tr><td>RFI 101</td><td>Water Service — Alternate Pipe Routing per EWW Approval</td><td>BSI</td><td>MM17</td><td>Urban Engineers</td><td><span class="status-badge status-ongoing">In Progress</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- DRAWING ISSUE LOG -->
+    <div class="card">
+        <h3>Drawing Issue Log</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Issue #</th><th>Description</th><th>Date Issued</th><th>Key Changes</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>DI-01</td><td>Drawing Issue 01 — Initial CD Set</td><td>2025</td><td>Base construction documents</td><td><span class="status-badge status-resolved">Released</span></td></tr>
+                    <tr><td>DI-06</td><td>Drawing Issue 06 — Electrified Doors + Electrical Distribution</td><td>2026</td><td>Hardware changes for electrified doors; electrical distribution service upgrade; scope/cost eval ongoing</td><td><span class="status-badge status-new">Under Evaluation</span></td></tr>
+                    <tr><td>DI-07</td><td>Drawing Issue 07</td><td>2025</td><td>Referenced in MM05; details per Kahn ASI log</td><td><span class="status-badge status-resolved">Released</span></td></tr>
+                    <tr><td>DI-08</td><td>Drawing Issue 08 — Structural Revisions</td><td>Dec 2025</td><td>Released MM15; DH Steel incorporating into shop drawings</td><td><span class="status-badge status-resolved">Released</span></td></tr>
+                    <tr><td>DI-09</td><td>Drawing Issue 09 — Structural Revisions</td><td>Dec 2025</td><td>Released MM15; DH Steel incorporating into shop drawings</td><td><span class="status-badge status-resolved">Released</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ============ FIELD ACTIVITY VIEW ============ -->
+<div id="view-field" class="view-section">
+
+    <div class="kpi-grid">
+        <div class="kpi-card green">
+            <div class="kpi-label">Safety Incidents</div>
+            <div class="kpi-value">0</div>
+            <div class="kpi-sub">Zero incidents through 16 field updates</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Active Subcontractors</div>
+            <div class="kpi-value">7</div>
+            <div class="kpi-sub">BSI, Perry, DH Steel, Lathrop, Dwyer, Cernica, Morrow Crane</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">OAC Meetings Held</div>
+            <div class="kpi-value">17</div>
+            <div class="kpi-sub">Biweekly since project start</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Field Updates</div>
+            <div class="kpi-value">16</div>
+            <div class="kpi-sub">Latest: February 24, 2026</div>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="card">
+            <h3>Construction Activity by Phase</h3>
+            <div class="chart-container"><canvas id="activityChart"></canvas></div>
+        </div>
+        <div class="card">
+            <h3>Subcontractor Activity Timeline</h3>
+            <div class="chart-container"><canvas id="subChart"></canvas></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Field Activity Log (Recent Updates)</h3>
+        <div class="activity-timeline">
+            <div class="activity-week">
+                <div class="activity-date">Field Update 16 — February 24, 2026</div>
+                <ul class="activity-items">
+                    <li><strong>Perry Construction:</strong> Poured stem walls (SW complete, NW 65%), elevator sump pit poured, interior pier caps poured for Marlena staircase</li>
+                    <li><strong>BSI:</strong> Tower crane foundation poured, Morrow Crane delivery/install scheduled 2/25/26, ongoing site coordination</li>
+                    <li><strong>Cernica Engineering:</strong> Concrete testing on stem wall and pier cap pours</li>
+                    <li><strong>Morrow Crane:</strong> Tower crane delivery and installation targeting 2/25/26</li>
+                    <li><strong>Safety:</strong> No accidents or injuries reported</li>
+                </ul>
+            </div>
+            <div class="activity-week">
+                <div class="activity-date">Field Update 15 — February 10, 2026</div>
+                <ul class="activity-items">
+                    <li><strong>BSI:</strong> Grade beam excavation continued, Marlena demo/floor reconstruction ongoing, formed tower crane temporary foundation</li>
+                    <li><strong>Perry Construction:</strong> Rebar, anchor bolts, stem wall forming SW grade beams, staircase pier caps west of Marlena</li>
+                    <li><strong>DH Steel:</strong> Shop drawings (incorporating Issues 08 & 09), material procurement, fabrication pending</li>
+                    <li><strong>Safety:</strong> No accidents or injuries reported</li>
+                </ul>
+            </div>
+            <div class="activity-week">
+                <div class="activity-date">Field Update 14 — January 27, 2026</div>
+                <ul class="activity-items">
+                    <li><strong>BSI:</strong> Grade beam excavation, Marlena demolition continued, electrical vault excavation</li>
+                    <li><strong>Perry Construction:</strong> Rebar, anchor bolts, poured cap beam Marlena north elevation (CMU wall), pier caps NE & SW</li>
+                    <li><strong>Lathrop Electric:</strong> Installed electrical vault, began underground conduit runs</li>
+                    <li><strong>DH Steel:</strong> Shop drawings, material procurement ongoing</li>
+                    <li><strong>Safety:</strong> No accidents or injuries reported</li>
+                </ul>
+            </div>
+            <div class="activity-week">
+                <div class="activity-date">Field Update 13 — January 13, 2026</div>
+                <ul class="activity-items">
+                    <li><strong>BSI:</strong> Excavation/hauling for grade beams, Marlena demo/floor reconstruction, pier cap excavation SW</li>
+                    <li><strong>Perry Construction:</strong> Rebar, anchor bolts, finished NW grade beams, forming pier caps NE & SW</li>
+                    <li><strong>DH Steel:</strong> Shop drawings under review, material procurement</li>
+                    <li><strong>Cernica Engineering:</strong> Concrete test cylinders</li>
+                    <li><strong>Safety:</strong> No accidents or injuries reported</li>
+                </ul>
+            </div>
+            <div class="activity-week">
+                <div class="activity-date">Field Update 12 — December 30, 2025</div>
+                <ul class="activity-items">
+                    <li><strong>BSI:</strong> Excavation/hauling for grade beams, Marlena demolition continued, backfilled NE quadrant, began Marlena floor reconstruction, excavated pier caps NE & SW</li>
+                    <li><strong>Perry Construction:</strong> Rebar for grade beams/piers, anchor bolts, foundation coating NE, poured 75% NE quadrant, forming pier caps NE & SW</li>
+                    <li><strong>DH Steel:</strong> Shop drawing approval process, procuring raw materials, fabrication pending approval</li>
+                    <li><strong>Inspections:</strong> Third-party concrete testing, City periodic foundation inspections</li>
+                </ul>
+            </div>
+            <div class="activity-week">
+                <div class="activity-date">Field Update 11 — December 16, 2025</div>
+                <ul class="activity-items">
+                    <li><strong>BSI:</strong> Excavation/hauling continued, Marlena stairwell demolition completed, backfilled NW quadrant</li>
+                    <li><strong>Perry Construction:</strong> Rebar, anchor bolts, poured remaining NW grade beams, foundation coating NW, 75% NW quadrant poured</li>
+                    <li><strong>DH Steel:</strong> Shop drawing approval, raw material procurement, awaiting approval for fabrication</li>
+                    <li><strong>Planned:</strong> Tower crane concrete pad foundation installation</li>
+                </ul>
+            </div>
+            <div class="activity-week">
+                <div class="activity-date">Field Update 10 — December 2, 2025</div>
+                <ul class="activity-items">
+                    <li><strong>BSI:</strong> Marlena north elevation demolition completed, NW grade beams backfilled</li>
+                    <li><strong>Perry Construction:</strong> NW quadrant forming, anchor bolts, poured/sealed NW grade beams (65%)</li>
+                    <li><strong>Cernica Engineering:</strong> Concrete test cylinders during grade beam placement</li>
+                    <li><strong>Dwyer Plumbing:</strong> Sleeves in grade beam formed sections</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Meeting Minutes — Action Items (as of MM17, 2/10/2026)</h3>
+        <div class="filter-bar">
+            <span style="font-size:12px;color:var(--text-light)">Open: <strong id="openItemCount">—</strong> &nbsp;|&nbsp; Resolved: <strong id="resolvedItemCount">—</strong></span>
+            <label class="filter-toggle"><input type="checkbox" id="hideResolvedActions" onchange="toggleResolvedActions()" checked> Hide resolved items</label>
+        </div>
+        <div class="table-wrap">
+            <table id="actionItemsTable">
+                <thead>
+                    <tr><th>Item #</th><th>Description</th><th>Owner</th><th>Opened</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr class="resolved-row resolved-row-hidden"><td>5.01</td><td>Under-slab pathway for entertainment system — EDDC to finalize layouts</td><td>EDDC</td><td>MM05</td><td><span class="status-badge status-resolved">Resolved MM13</span></td></tr>
+                    <tr class="resolved-row resolved-row-hidden"><td>5.02</td><td>Drawing Issues 06/07/08/09 — Issues 08 & 09 released (MM15)</td><td>Kahn</td><td>MM05</td><td><span class="status-badge status-resolved">Resolved MM15</span></td></tr>
+                    <tr class="resolved-row resolved-row-hidden"><td>9.01</td><td>Project banner — replacement section ordered</td><td>BSI</td><td>MM09</td><td><span class="status-badge status-resolved">Resolved MM13</span></td></tr>
+                    <tr class="resolved-row resolved-row-hidden"><td>10.01</td><td>Penelec overhead line removal — Invoice #91028246 paid $12,208.18 on 3/2/2026</td><td>EDDC / BSI</td><td>MM10</td><td><span class="status-badge status-resolved">Resolved 3/2/26</span></td></tr>
+                    <tr class="resolved-row resolved-row-hidden"><td>11.01</td><td>Marlena basement ship's ladder</td><td>Kahn</td><td>MM11</td><td><span class="status-badge status-resolved">Resolved MM15</span></td></tr>
+                    <tr class="resolved-row resolved-row-hidden"><td>11.02</td><td>Marlena masonry demising wall — structural assessment</td><td>Kahn / BSI</td><td>MM11</td><td><span class="status-badge status-resolved">Resolved MM15</span></td></tr>
+                    <tr class="resolved-row resolved-row-hidden"><td>11.03</td><td>Marlena floor-to-floor dimensions — existing conditions mismatch</td><td>Kahn</td><td>MM11</td><td><span class="status-badge status-resolved">Resolved MM15</span></td></tr>
+                    <tr><td>11.04</td><td>Domestic & fire water service — BSI finalizing permit paperwork with City of Erie</td><td>BSI</td><td>MM11</td><td><span class="status-badge status-ongoing">Ongoing</span></td></tr>
+                    <tr class="resolved-row resolved-row-hidden"><td>12.01</td><td>Anticipated draw schedule — BSI to prepare for EDDC review</td><td>BSI</td><td>MM12</td><td><span class="status-badge status-resolved">Resolved MM13</span></td></tr>
+                    <tr><td>12.02</td><td>Structural steel shop drawings — revised drawings expected by 2/1/26 per Kahn</td><td>Kahn</td><td>MM12</td><td><span class="status-badge status-ongoing">Ongoing</span></td></tr>
+                    <tr class="resolved-row resolved-row-hidden"><td>13.01</td><td>BSI to provide subcontractor listing</td><td>BSI</td><td>MM13</td><td><span class="status-badge status-resolved">Resolved MM14</span></td></tr>
+                    <tr><td>13.02</td><td>BSI to provide updated construction schedule reflecting delays</td><td>BSI</td><td>MM13</td><td><span class="status-badge status-ongoing">Ongoing</span></td></tr>
+                    <tr><td>14.01</td><td>RTI (Restaurant Technologies) selected as bulk cooking oil vendor — scouting tank location now. Indoor tanks: 81"×28", ~1,400 lbs each, need 120V/20A, 60°F+ space. Fill box on exterior wall within 30' of truck parking (32' truck). Flex lines max 120' to fryers.</td><td>EDDC</td><td>MM14</td><td><span class="status-badge status-ongoing" style="background:#f39c12; color:#fff;">Active</span></td></tr>
+                    <tr class="resolved-row resolved-row-hidden"><td>15.01</td><td>Asbestos found in Marlena — abatement completed</td><td>BSI</td><td>MM15</td><td><span class="status-badge status-resolved">Resolved MM17</span></td></tr>
+                    <tr><td>15.02</td><td>Drawing Issue 08 & 09 updates — BSI evaluating scope/cost impact</td><td>BSI</td><td>MM15</td><td><span class="status-badge status-ongoing">Ongoing</span></td></tr>
+                    <tr><td>16.01</td><td>5th Street closures required for steel erection — BSI to notify EDDC 2-3 weeks advance</td><td>BSI / EDDC</td><td>MM16</td><td><span class="status-badge status-new">New</span></td></tr>
+                    <tr><td>16.02</td><td>RFI 100 — Trash compactor substitution — Kahn finalizing review</td><td>Kahn</td><td>MM16</td><td><span class="status-badge status-ongoing">Ongoing</span></td></tr>
+                    <tr class="resolved-row resolved-row-hidden"><td>17.01</td><td>Penelec EDUs paid 3/2/2026 ($12,208.18) — waterline permit gate cleared</td><td>EDDC</td><td>MM17</td><td><span class="status-badge status-resolved">Resolved 3/2/26</span></td></tr>
+                    <tr><td>17.02</td><td>EWW accepted alternate water plan — BSI finalizing permit paperwork</td><td>BSI</td><td>MM17</td><td><span class="status-badge status-ongoing">Ongoing</span></td></tr>
+                    <tr><td>17.03</td><td>Structural steel shop drawings — BSI coordinating with DH Steel</td><td>BSI / Kahn</td><td>MM17</td><td><span class="status-badge status-ongoing">Ongoing</span></td></tr>
+                    <tr><td>17.04</td><td>5th Street closures targeting 2/25-26 for crane delivery/install</td><td>BSI / EDDC</td><td>MM17</td><td><span class="status-badge status-new">New</span></td></tr>
+                    <tr><td>17.05</td><td>Electrified doors hardware changes — Drawing Issue 06 scope/cost eval</td><td>Kahn / BSI</td><td>MM17</td><td><span class="status-badge status-new">New</span></td></tr>
+                    <tr><td>17.06</td><td>Electrical distribution service changes — Drawing Issue 06 scope/cost eval</td><td>Kahn / BSI</td><td>MM17</td><td><span class="status-badge status-new">New</span></td></tr>
+                    <tr><td>17.07</td><td>RFI 100 ProWaste coordination ongoing</td><td>BSI / Kahn</td><td>MM17</td><td><span class="status-badge status-ongoing">Ongoing</span></td></tr>
+                    <tr><td>17.08</td><td>RTI oil system — walk building with BSI to identify candidate tank locations (truck access, fill box wall, flex line distance to Kitchens 109/117)</td><td>EDDC / BSI</td><td>MM17</td><td><span class="status-badge status-ongoing" style="background:#f39c12; color:#fff;">Active</span></td></tr>
+                    <tr style="background:#fff0f0;"><td>NEW</td><td><strong>CRITICAL:</strong> Penelec rejected splice box on EP-601 — KAHN must revise to non-fused disconnect switches. DO NOT construct to current electrical plans. DR#345923557</td><td>Kahn / EDDC / Penelec</td><td>—</td><td><span class="status-badge status-new" style="background:#c0392b; color:#fff;">Critical</span></td></tr>
+                    <tr style="background:#fff0f0;"><td>NEW</td><td>Issue hold to BSI/Lathrop Electric — no electrical service entrance work until Penelec approves revised EP-601</td><td>EDDC / BSI</td><td>—</td><td><span class="status-badge status-new" style="background:#c0392b; color:#fff;">Critical</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ============ CONTACTS VIEW ============ -->
+<div id="view-contacts" class="view-section">
+    <div class="section-card">
+        <h2 class="section-title">Project Contact Directory</h2>
+        <div class="contact-toolbar">
+            <input type="text" class="contact-search" id="contactSearch" placeholder="Search by name, company, trade, or phone..." oninput="filterContacts()">
+            <button class="contact-filter-btn active" onclick="filterOrg('all', this)">All</button>
+            <button class="contact-filter-btn" onclick="filterOrg('BSI', this)">BSI</button>
+            <button class="contact-filter-btn" onclick="filterOrg('Perry', this)">Perry</button>
+            <button class="contact-filter-btn" onclick="filterOrg('Kahn', this)">Kahn</button>
+            <button class="contact-filter-btn" onclick="filterOrg('DH Steel', this)">DH Steel</button>
+            <button class="contact-filter-btn" onclick="filterOrg('RGS', this)">RGS</button>
+            <button class="contact-filter-btn" onclick="filterOrg('Corporate Glass', this)">Corp Glass</button>
+            <button class="contact-filter-btn" onclick="filterOrg('Penelec', this)">Penelec</button>
+            <button class="view-mode-btn active" id="gridViewBtn" onclick="setContactView('grid')" title="Card view">&#9638;</button>
+            <button class="view-mode-btn" id="tableViewBtn" onclick="setContactView('table')" title="Table view">&#9776;</button>
+            <span class="contact-count" id="contactCount">38 contacts</span>
+        </div>
+
+        <div class="contact-grid-view active" id="contactGrid">
+        </div>
+
+        <div class="contact-table-view" id="contactTable">
+            <table class="data-table" id="contactDataTable">
+                <thead>
+                    <tr><th>Name</th><th>Organization</th><th>Trade</th><th>Phone</th><th>Email</th></tr>
+                </thead>
+                <tbody id="contactTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TENANT RECRUITMENT VIEW ===== -->
+<div id="view-tenants" class="view-section">
+    <h2 style="font-size:18px; color:var(--primary); margin-bottom:6px;">Tenant Recruitment Pipeline</h2>
+    <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Flagship City Commons &bull; Mixed-Use: Restaurants + Arts + Medical/Research + Office</p>
+
+    <div class="tenant-legend">
+        <div class="tenant-legend-item"><div class="tenant-legend-dot" style="background:var(--green);"></div> Confirmed / Committed</div>
+        <div class="tenant-legend-item"><div class="tenant-legend-dot" style="background:#3498db;"></div> Expressed Interest</div>
+        <div class="tenant-legend-item"><div class="tenant-legend-dot" style="background:var(--yellow);"></div> Local Prospect</div>
+        <div class="tenant-legend-item"><div class="tenant-legend-dot" style="background:#9b59b6;"></div> National Prospect</div>
+    </div>
+
+    <!-- CONFIRMED / COMMITTED -->
+    <div class="tenant-section-title">Confirmed / Committed</div>
+    <div class="tenant-pipeline">
+        <div class="tenant-card t-confirmed">
+            <div class="tenant-name">Erie Arts &amp; Culture</div>
+            <div class="tenant-type tt-confirmed">Confirmed &mdash; Marlena Arcade Section</div>
+            <div class="tenant-desc">Regional arts agency for Northwestern PA (6-county region). Administers PA Council on the Arts programs. Cultural anchor for the building &mdash; gallery/exhibition programming, artist community, creative economy hub.</div>
+            <div class="tenant-contact"><strong>Contact:</strong> Susannah Faulkner, Executive Director<br>310 E 10th St, Erie PA 16503<br><a href="https://www.erieartsandculture.org/contact-us/">erieartsandculture.org</a></div>
+        </div>
+    </div>
+
+    <!-- EXPRESSED INTEREST -->
+    <div class="tenant-section-title">Expressed Interest</div>
+    <div class="tenant-pipeline">
+        <div class="tenant-card t-interested">
+            <div class="tenant-name">Hamot Health Foundation</div>
+            <div class="tenant-type tt-interested">Interest Expressed</div>
+            <div class="tenant-desc">501(c)(3) supporting UPMC Hamot. FY24 grants $1.53M for capital, equipment, research, education. Potential for health education programming, wellness-focused services, partnership with Magee research initiatives.</div>
+            <div class="tenant-contact"><strong>Contact:</strong> Charles "Boo" Hagerty, President<br>302 French St, Erie PA 16507<br><a href="https://www.hamothealthfoundation.org/">hamothealthfoundation.org</a></div>
+        </div>
+        <div class="tenant-card t-interested">
+            <div class="tenant-name">UPMC Magee-Womens Research Institute</div>
+            <div class="tenant-type tt-interested">Interest Expressed &mdash; Medical Research</div>
+            <div class="tenant-desc">First MWRI expansion outside Pittsburgh. $26M total investment (ECF $6M, Hamot $5M, UPMC $5M, MWRI $5M, Penn State $5M). Already operating at 118 E 2nd St adjacent to Flagship Commons. Interest in expanded research collaboration space.</div>
+            <div class="tenant-contact"><strong>Contact:</strong> Dr. Halina Zyczynski, Medical Director<br>118 E 2nd St, Erie PA 16507<br><a href="https://mageewomens.org/">mageewomens.org</a></div>
+        </div>
+        <div class="tenant-card t-interested">
+            <div class="tenant-name">Penn State Behrend</div>
+            <div class="tenant-type tt-interested">Interest Expressed &mdash; Research/Education</div>
+            <div class="tenant-desc">$5M commitment to Magee-Womens partnership. Campus 10 mi from downtown. Opportunity for satellite research collaboration space, corporate training/continuing ed venue, student internship coordination with medical/wellness tenants.</div>
+            <div class="tenant-contact"><strong>Contact:</strong> Office of Academic Affairs / Business Partnerships<br>Penn State Erie, The Behrend College<br><a href="https://behrend.psu.edu/">behrend.psu.edu</a></div>
+        </div>
+    </div>
+
+    <!-- LOCAL PROSPECTS -->
+    <div class="tenant-section-title">Local Prospects</div>
+    <div class="tenant-pipeline">
+        <div class="tenant-card t-prospect-local">
+            <div class="tenant-name">Radius CoWork</div>
+            <div class="tenant-type tt-local">Local &mdash; Coworking / Shared Workspace</div>
+            <div class="tenant-desc">Established 2015 at 1001 State St. Already partnered with EDDC on Project Front Door ($250K Shaping Tomorrow grant). Community-driven coworking with open desks, meeting rooms, events. Potential expansion or satellite hot-desk space in Flagship Commons.</div>
+            <div class="tenant-contact"><strong>Contact:</strong> Sean Fedorko, Founder/Executive Director<br>1001 State St, Erie PA<br><a href="https://www.radiusco.work/">radiusco.work</a></div>
+        </div>
+        <div class="tenant-card t-prospect-local">
+            <div class="tenant-name">Ben Franklin Technology Partners</div>
+            <div class="tenant-type tt-local">Local &mdash; Tech / Innovation</div>
+            <div class="tenant-desc">Fund and mentor tech-based companies and small manufacturers. $500K Erie Revitalization Investment Fund (with Erie Insurance) for early-stage tech. Since 1983: 4,500+ companies, $25B economic impact. Potential for tech startup office space and innovation programming.</div>
+            <div class="tenant-contact"><strong>Contact:</strong> Regional Leadership<br>5240 Fryling Rd, Erie PA 16510<br><a href="https://cnp.benfranklin.org/">cnp.benfranklin.org</a></div>
+        </div>
+        <div class="tenant-card t-prospect-local">
+            <div class="tenant-name">Gannon University SBDC</div>
+            <div class="tenant-type tt-local">Local &mdash; Business Support / Education</div>
+            <div class="tenant-desc">Free consulting for entrepreneurs (business plans, market analysis, compliance). Recently relocated to 130 W 8th St. Serves Crawford, Erie, Mercer, Warren counties. Could host SBDC workshops/seminars and support restaurant tenant business development.</div>
+            <div class="tenant-contact"><strong>Contact:</strong> Center Director<br>130 W 8th St, Erie PA (Gannon Center for Advanced Engineering)<br><a href="https://www.sbdcgannon.org/">sbdcgannon.org</a></div>
+        </div>
+        <div class="tenant-card t-prospect-local">
+            <div class="tenant-name">ErieMade / Bridgeway Capital</div>
+            <div class="tenant-type tt-local">Local &mdash; Creative Economy Accelerator</div>
+            <div class="tenant-desc">Creative Business Accelerator with 3-phase academy. StARTup Grants $500-$5,000 for creative entrepreneurs. Partners with Erie Arts &amp; Culture and ECRDA. Potential for shared retail/studio space among academy participants.</div>
+            <div class="tenant-contact"><strong>Contact:</strong> Program Director<br><a href="https://www.bridgewaycapital.org/creative-business-accelerator/eriemade/">bridgewaycapital.org/eriemade</a></div>
+        </div>
+    </div>
+
+    <!-- NATIONAL PROSPECTS -->
+    <div class="tenant-section-title">National Prospects &mdash; Coworking &amp; Flexible Workspace</div>
+    <div class="tenant-pipeline">
+        <div class="tenant-card t-prospect-national">
+            <div class="tenant-name">COhatch</div>
+            <div class="tenant-type tt-national">National &mdash; Community Coworking (Ohio-Based)</div>
+            <div class="tenant-desc">27+ locations, community-first coworking with private offices + social spaces. Already expanded to Pittsburgh (3 locations: Waterfront, Shadyside, SouthSide Works). Midwest expansion strategy with regional interest in PA. Strong alignment with downtown revitalization mission.</div>
+            <div class="tenant-contact"><strong>Contact:</strong> Tania Lehotay, National Development Head<br>1581 N High St, Columbus OH<br><a href="https://www.cohatch.com/contact/">cohatch.com</a></div>
+        </div>
+        <div class="tenant-card t-prospect-national">
+            <div class="tenant-name">Serendipity Labs</div>
+            <div class="tenant-type tt-national">National &mdash; Premium Coworking (Secondary Markets)</div>
+            <div class="tenant-desc">28+ locations in urban and secondary markets. Design-forward, service-focused workspace. 250,000 SF added in past 12 months. Franchise/asset owner partnership model available &mdash; ideal for EDDC as property owner.</div>
+            <div class="tenant-contact"><strong>Contact:</strong> John Arenas, CEO &bull; Brad LeBlanc, SVP Franchise Development<br><a href="https://serendipitylabs.com/">serendipitylabs.com</a></div>
+        </div>
+        <div class="tenant-card t-prospect-national">
+            <div class="tenant-name">Life Time Work</div>
+            <div class="tenant-type tt-national">National &mdash; Wellness + Coworking Integration</div>
+            <div class="tenant-desc">Premium coworking integrated with fitness/nutrition/wellness. 5+ locations including Philadelphia (Ardmore). Ground-floor restaurants + Life Time Work wellness model = strong synergy. Residential units nearby match target demographic. $300-$1,500/mo memberships.</div>
+            <div class="tenant-contact"><strong>Contact:</strong> Regional Development VP<br><a href="https://work.lifetime.life/">work.lifetime.life</a></div>
+        </div>
+        <div class="tenant-card t-prospect-national">
+            <div class="tenant-name">Impact Hub</div>
+            <div class="tenant-type tt-national">National &mdash; Social Impact Coworking</div>
+            <div class="tenant-desc">Global network 100+ locations in 50+ countries, 16,000+ members. Fusion of coworking, incubator, accelerator, event venue. Focus on social impact and community entrepreneurship. Inverted franchise model (local ownership) aligns with EDDC mission.</div>
+            <div class="tenant-contact"><strong>Contact:</strong> New Location Development<br><a href="https://impacthub.net/">impacthub.net</a></div>
+        </div>
+    </div>
+
+    <div class="tenant-section-title">National Prospects &mdash; Health, Wellness &amp; Creative</div>
+    <div class="tenant-pipeline">
+        <div class="tenant-card t-prospect-national">
+            <div class="tenant-name">FYZICAL Therapy &amp; Balance Centers</div>
+            <div class="tenant-type tt-national">National &mdash; Physical Therapy Franchise</div>
+            <div class="tenant-desc">Fastest-growing PT franchise (620+ locations, 46 states). Active PA expansion with multi-unit operators in Pittsburgh. PT industry projected to double to $128B by 2032. Complements Magee research and wellness coworking ecosystem.</div>
+            <div class="tenant-contact"><strong>Contact:</strong> Franchise Development<br><a href="https://www.fyzicalfranchise.com/">fyzicalfranchise.com</a></div>
+        </div>
+        <div class="tenant-card t-prospect-national">
+            <div class="tenant-name">Artspace Projects Inc.</div>
+            <div class="tenant-type tt-national">National &mdash; Artist Live/Work Nonprofit</div>
+            <div class="tenant-desc">National nonprofit: 57 projects, 32 cities, 22 states. Creates affordable artist housing + commercial space (2,000+ units). Mixed-use model: housing above, studios/galleries below. Partnership for artist studios, gallery, and creative retail programming.</div>
+            <div class="tenant-contact"><strong>Contact:</strong> New Projects Director<br><a href="https://www.artspace.org/">artspace.org</a></div>
+        </div>
+        <div class="tenant-card t-prospect-national">
+            <div class="tenant-name">Common Threads</div>
+            <div class="tenant-type tt-national">National &mdash; Nonprofit Cooking Education</div>
+            <div class="tenant-desc">Food education nonprofit: 750+ schools, 10 major U.S. markets, 600,000+ students. Culinary workforce training adjacent to ground-floor restaurant spaces. Could host programming space for cooking classes, vendor training, and community nutrition education.</div>
+            <div class="tenant-contact"><strong>Contact:</strong> Partnership Inquiry<br><a href="https://www.commonthreads.org/">commonthreads.org</a></div>
+        </div>
+        <div class="tenant-card t-prospect-national">
+            <div class="tenant-name">Center on Rural Innovation (CORI)</div>
+            <div class="tenant-type tt-national">National &mdash; Rural Tech Ecosystem</div>
+            <div class="tenant-desc">National nonprofit supporting tech ecosystems in rural America. Remote work infrastructure, training, and job placement. Telework center model for rural Western PA residents. Could integrate with coworking and SBDC programming.</div>
+            <div class="tenant-contact"><strong>Contact:</strong> Business Development<br><a href="https://ruralinnovation.us/">ruralinnovation.us</a></div>
+        </div>
+    </div>
+
+    <!-- SYNERGY ANALYSIS -->
+    <div class="tenant-synergy">
+        <h4>Ecosystem Synergy Map</h4>
+        <p style="font-size:13px; color:var(--text-light); margin-bottom:12px;">The tenant mix creates a self-reinforcing economic ecosystem. Each category drives foot traffic and value for the others.</p>
+        <div class="synergy-flow">
+            <div class="synergy-node">Residential<br><span style="font-size:10px;font-weight:400;">(above Country Fair,<br>Dave's, Ascend)</span></div>
+            <div class="synergy-arrow">&rarr;</div>
+            <div class="synergy-node active">Restaurants<br><span style="font-size:10px;font-weight:400;">(ground floor<br>spaces)</span></div>
+            <div class="synergy-arrow">&rarr;</div>
+            <div class="synergy-node active">Flagship Commons<br><span style="font-size:10px;font-weight:400;">(cowork + office<br>+ arts + wellness)</span></div>
+            <div class="synergy-arrow">&rarr;</div>
+            <div class="synergy-node">UPMC / Magee<br><span style="font-size:10px;font-weight:400;">(medical research<br>118 E 2nd)</span></div>
+            <div class="synergy-arrow">&rarr;</div>
+            <div class="synergy-node">Support Ecosystem<br><span style="font-size:10px;font-weight:400;">(Ben Franklin, SBDC,<br>Radius, ErieMade)</span></div>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:12px; margin-top:16px;">
+            <div style="font-size:12px; color:var(--text-light);"><strong style="color:var(--primary);">Daily Traffic:</strong> Restaurant patrons, office/coworking members, residential foot traffic, health professionals</div>
+            <div style="font-size:12px; color:var(--text-light);"><strong style="color:var(--primary);">Weekly Events:</strong> Wellness workshops, artist talks/exhibitions, small business networking, vendor training</div>
+            <div style="font-size:12px; color:var(--text-light);"><strong style="color:var(--primary);">Seasonal:</strong> Gallery Night events, food festivals, holiday shopping (artist retail + specialty food), arts programming</div>
+            <div style="font-size:12px; color:var(--text-light);"><strong style="color:var(--primary);">Revenue Mix:</strong> Memberships, retail, event rental, food service, professional services, education/workshops</div>
+        </div>
+    </div>
+
+    <!-- RECOMMENDED TENANT MIX -->
+    <div class="card" style="margin-top:20px;">
+        <h3>Recommended Tenant Mix &mdash; Priority Tiers</h3>
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead><tr style="background:var(--primary); color:#fff;">
+                <th style="padding:10px; text-align:left;">Tier</th>
+                <th style="padding:10px; text-align:left;">Category</th>
+                <th style="padding:10px; text-align:left;">Est. SF</th>
+                <th style="padding:10px; text-align:left;">Top Prospects</th>
+                <th style="padding:10px; text-align:left;">Why It Works</th>
+            </tr></thead>
+            <tbody>
+                <tr style="background:#eafaf1;"><td style="padding:8px; font-weight:700;">1</td><td>Arts &amp; Culture Anchor</td><td>TBD</td><td>Erie Arts &amp; Culture (confirmed)</td><td>Cultural legitimacy, creative community, exhibition programming</td></tr>
+                <tr style="background:#eafaf1;"><td style="padding:8px; font-weight:700;">1</td><td>Medical / Research Anchor</td><td>TBD</td><td>UPMC Magee, Penn State Behrend, Hamot Health Foundation</td><td>$26M research investment, professional clientele, health credibility</td></tr>
+                <tr style="background:#ebf5fb;"><td style="padding:8px; font-weight:700;">2</td><td>Coworking / Flex Workspace</td><td>3,000-5,000</td><td>COhatch, Serendipity Labs, Life Time Work</td><td>Integrates wellness + community; franchise models reduce EDDC risk</td></tr>
+                <tr style="background:#ebf5fb;"><td style="padding:8px; font-weight:700;">2</td><td>Health &amp; Wellness Retail</td><td>1,500-2,500</td><td>FYZICAL Therapy, independent wellness practitioners</td><td>Complements Magee, attracts health-conscious dining demographic</td></tr>
+                <tr style="background:#fef9e7;"><td style="padding:8px; font-weight:700;">3</td><td>Artist Studio / Gallery</td><td>1,000-2,000</td><td>Artspace Projects, local maker studios</td><td>Extends Erie Arts mission, evening event foot traffic</td></tr>
+                <tr style="background:#fef9e7;"><td style="padding:8px; font-weight:700;">3</td><td>Specialty Food / Beverage</td><td>1,000-1,500</td><td>Wine bar, cooking school, specialty retail</td><td>Complements ground-floor restaurants, creates evening destination</td></tr>
+                <tr style="background:#f5eef8;"><td style="padding:8px; font-weight:700;">4</td><td>Education / Workforce Dev</td><td>500-1,500</td><td>SBDC satellite, Common Threads, CORI</td><td>Training pipeline for restaurant + tech tenants</td></tr>
+                <tr style="background:#f5eef8;"><td style="padding:8px; font-weight:700;">4</td><td>Professional Services</td><td>500-1,500</td><td>Local attorneys, consultants, financial advisors</td><td>Support services for small businesses and food vendors</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ===== FINANCIAL FORECAST VIEW ===== -->
+<div id="view-forecast" class="view-section">
+    <h2 style="font-size:18px; color:var(--primary); margin-bottom:4px;">Financial Payment Forecast</h2>
+    <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">GMP: $24,148,540 &bull; Estimated monthly draws vs. actual pay applications &bull; Updated as pay apps are received</p>
+
+    <div class="forecast-note">
+        <strong>How to use:</strong> The "Estimated" column shows projected monthly draws based on trade sequencing and S-curve modeling. As you receive pay applications from BSI, update the "Actual" column in the JavaScript data array at the bottom of this file. The variance and cumulative tracking will update automatically.
+    </div>
+
+    <!-- KPI Summary -->
+    <div class="forecast-kpi-grid" id="forecastKPIs">
+        <!-- Populated by JS -->
+    </div>
+
+    <!-- Charts -->
+    <div class="forecast-chart-wrap">
+        <div class="card">
+            <h3>Monthly Draws — Estimated vs. Actual</h3>
+            <div class="chart-container"><canvas id="forecastBarChart"></canvas></div>
+        </div>
+        <div class="card">
+            <h3>Cumulative S-Curve</h3>
+            <div class="chart-container"><canvas id="forecastCumChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- Quarterly Summary -->
+    <div class="card">
+        <h3>Quarterly Cash Needs</h3>
+        <div class="table-wrap">
+            <table class="forecast-table" id="forecastQuarterlyTable">
+                <thead>
+                    <tr><th>Quarter</th><th>Period</th><th>Est. Total</th><th>Actual Total</th><th>Variance</th><th>% of Remaining</th><th>Fundraising Priority</th></tr>
+                </thead>
+                <tbody id="forecastQuarterlyBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Monthly Detail Table -->
+    <div class="card">
+        <h3>Month-by-Month Payment Schedule</h3>
+        <div class="table-wrap">
+            <table class="forecast-table" id="forecastTable">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Pay App #</th>
+                        <th>Est. Draw</th>
+                        <th>Actual Draw</th>
+                        <th>Variance ($)</th>
+                        <th>Var %</th>
+                        <th>Cum. Est.</th>
+                        <th>Cum. Actual</th>
+                        <th>% of GMP</th>
+                        <th>Primary Activity</th>
+                    </tr>
+                </thead>
+                <tbody id="forecastTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Historical Pay Apps -->
+    <div class="card">
+        <h3>Historical Pay Applications (Pre-Forecast Actuals)</h3>
+        <div class="table-wrap">
+            <table class="forecast-table">
+                <thead>
+                    <tr><th>#</th><th>Period Ending</th><th>Payment Due</th><th>Cumulative Paid</th><th>% Complete</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>Sep 2, 2025</td><td>$456,010</td><td>$456,010</td><td>42%</td></tr>
+                    <tr><td>2</td><td>Oct 24, 2025</td><td>$581,105</td><td>$1,037,115</td><td>95%</td></tr>
+                    <tr><td>3</td><td>Nov 21, 2025</td><td>$580,161</td><td>$1,617,276</td><td>7%</td></tr>
+                    <tr><td>4</td><td>Dec 19, 2025</td><td>$486,669</td><td>$2,103,945</td><td>10%</td></tr>
+                    <tr><td>5</td><td>Jan 16, 2026</td><td>$278,271</td><td>$2,382,216</td><td>11%</td></tr>
+                    <tr style="font-weight:700;background:#f0f7ff"><td>6</td><td>Feb 20, 2026</td><td>$217,612</td><td>$2,599,828</td><td>12%</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="billing-note"><strong>Note:</strong> Pay Apps 1-2 were under original $1.21M contract. Pay App 3+ reflect GMP of $24,148,540 after PCN 001 approval.</div>
+    </div>
+
+    <!-- Notes -->
+    <div class="card">
+        <h3>Assumptions &amp; Notes</h3>
+        <ul style="font-size:12px; color:var(--text-light); line-height:1.8; padding-left:18px;">
+            <li>Estimates based on typical commercial construction S-curve adjusted for this project's trade sequencing.</li>
+            <li>Peak spend (Jul–Aug 2026) coincides with simultaneous envelope, MEP rough-in, and elevator install.</li>
+            <li>PCN 002 (KAHN fee increase of $420,530) is <strong>NOT</strong> included — pending board action.</li>
+            <li>Retainage (10%) held throughout, released at substantial completion (est. Mar–Apr 2027).</li>
+            <li>Monthly draws are estimates — actual amounts depend on work-in-place per BSI pay applications.</li>
+            <li><strong>To update actuals:</strong> Find the <code>FORECAST_DATA</code> array in the page source and update the <code>actual</code> field for each month as pay apps are received.</li>
+        </ul>
+    </div>
+</div>
+
+</div><!-- /main -->
+
+<div class="footer">
+    EDDC Flagship Commons Construction Dashboard &bull; Generated March 2, 2026 &bull; Erie Downtown Development Corporation
+</div>
+
+<script>
+// ===== VIEW SWITCHING =====
+function switchView(view) {
+    document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('view-' + view).classList.add('active');
+    event.target.classList.add('active');
+}
+
+// ===== SAFETY DAYS COUNTER =====
+(function() {
+    var projectStart = new Date(2025, 9, 1); // Oct 1, 2025
+    var today = new Date();
+    var diffMs = today - projectStart;
+    var diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    var el = document.getElementById('safetyDays');
+    if (el) el.textContent = diffDays;
+})();
+
+// ===== SCHEDULE COUNTDOWN =====
+(function() {
+    var target = new Date(2027, 3, 30); // Apr 30, 2027 projected completion
+    var today = new Date();
+    var diffMs = target - today;
+    var diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    var months = Math.floor(diffDays / 30.44);
+    var remainDays = diffDays - Math.round(months * 30.44);
+    var cdEl = document.getElementById('scheduleCountdown');
+    var subEl = document.getElementById('scheduleCountdownSub');
+    if (cdEl) {
+        cdEl.textContent = diffDays + ' days';
+        subEl.textContent = '~' + months + ' months, ' + Math.abs(remainDays) + ' days remaining';
+    }
+})();
+
+// ===== RESOLVED ITEM TOGGLES =====
+function toggleResolvedIssues() {
+    var hide = document.getElementById('hideResolvedIssues').checked;
+    document.querySelectorAll('.issue-item.resolved-item').forEach(function(el) {
+        if (hide) el.classList.add('resolved-item-hidden');
+        else el.classList.remove('resolved-item-hidden');
+    });
+}
+function toggleResolvedActions() {
+    var hide = document.getElementById('hideResolvedActions').checked;
+    document.querySelectorAll('#actionItemsTable .resolved-row').forEach(function(el) {
+        if (hide) el.classList.add('resolved-row-hidden');
+        else el.classList.remove('resolved-row-hidden');
+    });
+}
+
+// ===== ACTION ITEM COUNTS =====
+(function() {
+    var rows = document.querySelectorAll('#actionItemsTable tbody tr');
+    var resolved = 0, open = 0;
+    rows.forEach(function(r) {
+        if (r.classList.contains('resolved-row')) resolved++;
+        else open++;
+    });
+    var oel = document.getElementById('openItemCount');
+    var rel = document.getElementById('resolvedItemCount');
+    if (oel) oel.textContent = open;
+    if (rel) rel.textContent = resolved;
+})();
+
+// ===== COLOR PALETTE =====
+const colors = ['#1a3a5c','#2e8b57','#d4a843','#c0392b','#8e44ad','#2980b9','#e67e22','#16a085','#7f8c8d','#d35400','#27ae60'];
+
+// ===== BUDGET CHART (Summary) =====
+const budgetData = {
+    labels: ['CM/BSI','General Const.','Metals/Steel','Glass/Glazing','HVAC','Electrical','Plumbing','Caissons','Fire Protection','Elevator','Wood Windows','CM Fee','Contingency'],
+    datasets: [{
+        label: 'Budget ($)',
+        data: [3175100, 8763100, 2458200, 3698300, 2080000, 1273400, 591600, 1209950, 310700, 349900, 63500, 741000, 366500],
+        backgroundColor: colors.concat(['#34495e','#95a5a6']),
+        borderRadius: 4
+    }]
+};
+new Chart(document.getElementById('budgetChart'), {
+    type: 'bar',
+    data: budgetData,
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false },
+            tooltip: { callbacks: { label: ctx => '$' + ctx.raw.toLocaleString() } }
+        },
+        scales: {
+            y: { ticks: { callback: v => '$' + (v/1000000).toFixed(1) + 'M' } },
+            x: { ticks: { font: { size: 10 }, maxRotation: 45 } }
+        }
+    }
+});
+
+// ===== PAYMENT PROGRESS CHART (Summary) — corrected with actual Pay App data =====
+new Chart(document.getElementById('paymentChart'), {
+    type: 'line',
+    data: {
+        labels: ['PA1\n9/2/25','PA2\n10/24/25','PA3\n11/21/25','PA4\n12/19/25','PA5\n1/16/26','PA6\n2/20/26'],
+        datasets: [
+            {
+                label: 'Cumulative Billed',
+                data: [506678, 1152350, 1796974, 2337717, 2646906, 2888697],
+                borderColor: '#2e8b57', backgroundColor: 'rgba(46,139,87,0.1)',
+                fill: true, tension: 0.3, pointRadius: 5
+            },
+            {
+                label: 'Cumulative Paid',
+                data: [456010, 1037115, 1617276, 2103945, 2382216, 2599828],
+                borderColor: '#1a3a5c', backgroundColor: 'rgba(26,58,92,0.05)',
+                fill: true, tension: 0.3, pointRadius: 5
+            }
+        ]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.raw.toLocaleString() } } },
+        scales: { y: { ticks: { callback: v => '$' + (v/1000000).toFixed(1) + 'M' } } }
+    }
+});
+
+// ===== TRADE CHART (Management) =====
+const tradeLabels = ['Concrete/Grade Beams','Structural Steel','General Conditions','Demolition','Elevator','Sitework','Wall Framing','Carpentry','Electrical (temp)','Tower Crane'];
+const tradeBudget  = [640150, 2458200, 508280, 244940, 349900, 140000, 573694, 190900, 350000, 413100];
+const tradeBilled  = [544128, 368730, 152484, 122470, 174950, 105000, 28685, 19090, 35000, 28917];
+new Chart(document.getElementById('tradeChart'), {
+    type: 'bar',
+    data: {
+        labels: tradeLabels,
+        datasets: [
+            { label: 'Budget', data: tradeBudget, backgroundColor: 'rgba(26,58,92,0.3)', borderColor: '#1a3a5c', borderWidth: 1, borderRadius: 4 },
+            { label: 'Billed', data: tradeBilled, backgroundColor: '#2e8b57', borderRadius: 4 }
+        ]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.raw.toLocaleString() } } },
+        scales: { x: { ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'K' } } }
+    }
+});
+
+// ===== BILLING TREND (Management) — corrected with actual Pay App data =====
+new Chart(document.getElementById('billingTrend'), {
+    type: 'bar',
+    data: {
+        labels: ['Sep 2025','Oct 2025','Nov 2025','Dec 2025','Jan 2026','Feb 2026'],
+        datasets: [
+            {
+                label: 'Monthly Billing',
+                data: [456010, 581105, 580161, 486669, 278271, 217612],
+                backgroundColor: '#d4a843', borderRadius: 4
+            },
+            {
+                label: 'Cumulative',
+                data: [456010, 1037115, 1617276, 2103945, 2382216, 2599828],
+                type: 'line', borderColor: '#1a3a5c', backgroundColor: 'transparent',
+                tension: 0.3, pointRadius: 5, yAxisID: 'y1'
+            }
+        ]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.raw.toLocaleString() } } },
+        scales: {
+            y: { position: 'left', ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'K' } },
+            y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => '$' + (v/1000000).toFixed(1) + 'M' } }
+        }
+    }
+});
+
+// ===== ACTIVITY CHART (Field) =====
+new Chart(document.getElementById('activityChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Foundation/Grade Beams','Marlena Demo/Recon','Steel Procurement','Site Work/Excavation','Electrical Underground','Inspections/Testing'],
+        datasets: [{
+            data: [30, 25, 15, 12, 10, 8],
+            backgroundColor: ['#1a3a5c','#d4a843','#2e8b57','#e67e22','#8e44ad','#2980b9']
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'right', labels: { font: { size: 12 } } } }
+    }
+});
+
+// ===== SUBCONTRACTOR TIMELINE (Field) — extended through Feb 2026 =====
+new Chart(document.getElementById('subChart'), {
+    type: 'bar',
+    data: {
+        labels: ['BSI (GC)','Perry Construction','DH Steel','Lathrop Electric','Dwyer Plumbing','Cernica Engineering','Morrow Crane'],
+        datasets: [
+            { label: 'Oct', data: [1,1,1,1,0,0,0], backgroundColor: '#1a3a5c' },
+            { label: 'Nov', data: [1,1,1,1,1,0,0], backgroundColor: '#2980b9' },
+            { label: 'Dec', data: [1,1,1,0,1,1,0], backgroundColor: '#2e8b57' },
+            { label: 'Jan', data: [1,1,1,1,0,1,0], backgroundColor: '#e67e22' },
+            { label: 'Feb', data: [1,1,1,0,0,1,1], backgroundColor: '#8e44ad' }
+        ]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        scales: { x: { stacked: true, display: false }, y: { stacked: true } },
+        plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: ctx => ctx.raw ? ctx.dataset.label + ': Active' : '' } } }
+    }
+});
+
+// ===== BUDGET TABLE (Management) =====
+const budgetItems = [
+    { name: 'BSI General Conditions', scheduled: 508280, completed: 152484, pct: 30, thisPeriod: 0 },
+    { name: 'Sitework', scheduled: 140000, completed: 105000, pct: 75, thisPeriod: 0 },
+    { name: 'Concrete Grade Beams (CI 01A)', scheduled: 640150, completed: 544128, pct: 85, thisPeriod: 64015 },
+    { name: 'Structural Steel (CI 03)', scheduled: 2458200, completed: 368730, pct: 15, thisPeriod: 122910 },
+    { name: 'General Construction (CI 04)', scheduled: 8763100, completed: 244940, pct: 3, thisPeriod: 0 },
+    { name: 'Glass & Glazing (CI 05)', scheduled: 3698300, completed: 0, pct: 0, thisPeriod: 0 },
+    { name: 'Elevator (CI 06)', scheduled: 349900, completed: 174950, pct: 50, thisPeriod: 0 },
+    { name: 'Fire Protection (CI 09)', scheduled: 310700, completed: 0, pct: 0, thisPeriod: 0 },
+    { name: 'Plumbing (CI 10)', scheduled: 591600, completed: 11832, pct: 2, thisPeriod: 0 },
+    { name: 'HVAC (CI 07)', scheduled: 2080000, completed: 0, pct: 0, thisPeriod: 0 },
+    { name: 'Electrical (CI 08)', scheduled: 1273400, completed: 35000, pct: 3, thisPeriod: 0 },
+    { name: 'CM Fee (CI 11)', scheduled: 741000, completed: 74100, pct: 10, thisPeriod: 7410 },
+    { name: 'Demolition', scheduled: 244940, completed: 122470, pct: 50, thisPeriod: 0 },
+    { name: 'Wall Framing', scheduled: 573694, completed: 28685, pct: 5, thisPeriod: 28685 },
+    { name: 'Tower Crane Release', scheduled: 413100, completed: 28917, pct: 7, thisPeriod: 28917 },
+    { name: 'Other CI Items', scheduled: 1110276, completed: 197461, pct: 18, thisPeriod: 0 },
+];
+
+const tbody = document.getElementById('budgetTableBody');
+budgetItems.forEach(item => {
+    const bal = item.scheduled - item.completed;
+    const pctColor = item.pct >= 50 ? 'var(--green)' : item.pct > 0 ? 'var(--yellow)' : 'var(--text-light)';
+    tbody.innerHTML += `<tr>
+        <td>${item.name}</td>
+        <td>$${item.scheduled.toLocaleString()}</td>
+        <td>$${item.completed.toLocaleString()}</td>
+        <td><span style="color:${pctColor};font-weight:700">${item.pct}%</span>
+            <div class="progress-bar"><div class="progress-fill ${item.pct >= 50 ? 'green' : item.pct > 0 ? 'yellow' : ''}" style="width:${item.pct}%"></div></div>
+        </td>
+        <td>$${bal.toLocaleString()}</td>
+        <td>${item.thisPeriod > 0 ? '$' + item.thisPeriod.toLocaleString() : '—'}</td>
+    </tr>`;
+});
+
+// Add totals row
+tbody.innerHTML += `<tr style="font-weight:700;background:#f0f7ff;border-top:2px solid var(--primary)">
+    <td>TOTAL</td>
+    <td>$24,148,540</td>
+    <td>$2,888,697</td>
+    <td><span style="color:var(--yellow);font-weight:700">12%</span>
+        <div class="progress-bar"><div class="progress-fill yellow" style="width:12%"></div></div>
+    </td>
+    <td>$21,259,843</td>
+    <td>$217,612</td>
+</tr>`;
+
+// ===== PDF BRIEFING GENERATOR =====
+function generateBriefing() {
+    // Date helpers
+    var now = new Date();
+    var dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var todayStr = dayNames[now.getDay()] + ', ' + monthNames[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+    var timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    var weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+    var weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 4);
+    var weekStr = monthNames[weekStart.getMonth()] + ' ' + weekStart.getDate() + ' - ' + monthNames[weekEnd.getMonth()] + ' ' + weekEnd.getDate() + ', ' + weekEnd.getFullYear();
+    var dateSlug = now.toISOString().slice(0, 10);
+
+    // Try jsPDF first, fall back to print-to-PDF
+    if (window.jspdf && window.jspdf.jsPDF) {
+        try {
+            generateWithJsPDF(now, todayStr, timeStr, weekStr, dateSlug);
+            return;
+        } catch (err) {
+            console.error('jsPDF failed, falling back to print:', err);
+        }
+    }
+    // Fallback: open a styled print window
+    generatePrintBriefing(todayStr, timeStr, weekStr, dateSlug);
+}
+
+// ============================================
+// PRIMARY: jsPDF direct download
+// ============================================
+function generateWithJsPDF(now, todayStr, timeStr, weekStr, dateSlug) {
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'letter' });
+    var W = doc.internal.pageSize.getWidth();
+    var H = doc.internal.pageSize.getHeight();
+    var MG = 40;
+    var CW = W - 2 * MG;
+    var y = 0;
+
+    function safeRect(x, yy, w, h, rx, ry, style) {
+        if (typeof doc.roundedRect === 'function') {
+            doc.roundedRect(x, yy, w, h, rx || 0, ry || 0, style);
+        } else {
+            doc.rect(x, yy, w, h, style);
+        }
+    }
+
+    var NAVY = [26, 58, 92], GOLD = [212, 168, 67], GREEN = [46, 139, 87];
+    var RED = [192, 57, 43], GRAY = [127, 140, 141];
+
+    function addFooter() {
+        doc.setFillColor(26, 58, 92);
+        doc.rect(0, H - 28, W, 28, 'F');
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(255, 255, 255);
+        doc.text('EDDC Flagship Commons  |  24-28 North Park Row, Erie PA 16501  |  Confidential', MG, H - 10);
+        doc.text('Page ' + doc.internal.getNumberOfPages(), W - MG - 30, H - 10);
+    }
+    function checkPage(needed) {
+        if (y + needed > H - 50) { addFooter(); doc.addPage(); y = 40; }
+    }
+    function section(title) {
+        doc.setFillColor(26, 58, 92);
+        doc.rect(MG, y, CW, 20, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(255, 255, 255);
+        doc.text(title.toUpperCase(), MG + 8, y + 14);
+        y += 26;
+    }
+
+    // HEADER
+    doc.setFillColor(26, 58, 92);
+    doc.rect(0, 0, W, 72, 'F');
+    doc.setFillColor(212, 168, 67);
+    doc.rect(0, 72, W, 4, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(255, 255, 255);
+    doc.text('FLAGSHIP COMMONS', MG, 32);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Project Briefing  |  Erie Downtown Development Corporation', MG, 50);
+    doc.setFontSize(9);
+    doc.text(todayStr + '  |  ' + timeStr, MG, 64);
+
+    var badges = [
+        { label: 'SAFETY: GREEN', clr: GREEN, tc: [255,255,255] },
+        { label: 'BUDGET: YELLOW', clr: GOLD, tc: [0,0,0] },
+        { label: 'SCHEDULE: YELLOW', clr: GOLD, tc: [0,0,0] }
+    ];
+    var bx = W - MG;
+    for (var bi = 0; bi < badges.length; bi++) {
+        var b = badges[bi];
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        var tw = doc.getTextWidth(b.label) + 16;
+        bx -= tw;
+        doc.setFillColor(b.clr[0], b.clr[1], b.clr[2]);
+        safeRect(bx, 24, tw, 18, 4, 4, 'F');
+        doc.setTextColor(b.tc[0], b.tc[1], b.tc[2]);
+        doc.text(b.label, bx + 8, 36);
+        bx -= 6;
+    }
+
+    y = 92;
+
+    // EXECUTIVE SUMMARY / MEETING AGENDA
+    doc.setFillColor(212, 168, 67);
+    doc.rect(MG, y, CW, 20, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
+    doc.text('EXECUTIVE SUMMARY / MEETING AGENDA', MG + 8, y + 14);
+    y += 24;
+
+    var bullets = [
+        'Overall project health: YELLOW — schedule and budget under watch, safety remains GREEN',
+        'Contract sum at $24.15M (GMP) — 12% billed to date ($2.89M), on pace through Pay App #6',
+        'Grade beams & foundations 90% — stem walls: SW complete, NW 65%, elevator sump pit poured',
+        'Tower crane installed 2/25 (Morrow Crane) — enables vertical construction phase',
+        'Structural steel shop drawings on CRITICAL PATH — BSI coordinating, fabrication pending',
+        'Asbestos in Marlena RESOLVED (MM17) — abatement completed, no further impact',
+        'EWW approved alternate water plan — uses existing 2021 taps, BSI finalizing permit',
+        'BUDGET WATCH: KAHN PCN 002 architect fee increase of $420,530 pending board action',
+        'NEW: Drawing Issue 06 — electrified doors hardware + electrical distribution changes under eval',
+        'CRITICAL: Penelec REJECTED splice box on EP-601 — KAHN must revise to non-fused disconnects. DO NOT build to current plans.',
+        'Penelec EDU paid 3/2/2026 ($12,208.18) — waterline permit gate cleared',
+        '5th Street closures targeting 2/25-26 for crane, additional closures for steel erection (Mar-May)',
+        'Target substantial completion: April 7, 2027 — currently tracking with minor delays'
+    ];
+
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(44, 62, 80);
+    for (var bti = 0; bti < bullets.length; bti++) {
+        var isWatch = bullets[bti].indexOf('BUDGET WATCH') === 0 || bullets[bti].indexOf('CRITICAL PATH') >= 0;
+        if (isWatch) {
+            doc.setFont('helvetica', 'bold'); doc.setTextColor(192, 57, 43);
+        } else {
+            doc.setFont('helvetica', 'normal'); doc.setTextColor(44, 62, 80);
+        }
+        doc.setFillColor(26, 58, 92);
+        doc.circle(MG + 8, y + 3, 2, 'F');
+        var bLines = doc.splitTextToSize(bullets[bti], CW - 22);
+        doc.text(bLines, MG + 16, y + 5);
+        y += bLines.length * 10 + 3;
+    }
+    y += 10;
+
+    // PROJECT SNAPSHOT
+    section('Project Snapshot');
+    var boxW = (CW - 20) / 4;
+    var kpis = [
+        ['CONTRACT SUM', '$24.15M', 'Current GMP', NAVY],
+        ['BILLED TO DATE', '$2.89M', '12% of contract', GREEN],
+        ['BALANCE REMAINING', '$21.26M', '$288,870 retainage', NAVY],
+        ['TARGET COMPLETION', 'Apr 2027', '18-month duration', GOLD]
+    ];
+    for (var ki = 0; ki < kpis.length; ki++) {
+        var k = kpis[ki];
+        var kx = MG + ki * (boxW + 6);
+        doc.setFillColor(240, 243, 245);
+        safeRect(kx, y, boxW, 48, 4, 4, 'F');
+        doc.setFillColor(k[3][0], k[3][1], k[3][2]);
+        doc.rect(kx, y + 4, 3, 40, 'F');
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(127, 140, 141);
+        doc.text(k[0], kx + 10, y + 13);
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(26, 58, 92);
+        doc.text(k[1], kx + 10, y + 32);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(127, 140, 141);
+        doc.text(k[2], kx + 10, y + 44);
+    }
+    y += 56;
+
+    // Safety + Document tracking row
+    var safetyDaysPdf = Math.floor((now - new Date(2025, 9, 1)) / (1000*60*60*24));
+    doc.setFillColor(214, 234, 214);
+    safeRect(MG, y, CW, 18, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(21, 87, 36);
+    doc.text(safetyDaysPdf + ' DAYS WITHOUT INCIDENT', MG + 8, y + 12);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(44, 62, 80);
+    doc.text('PCNs: 1 Approved / 1 Pending ($420K)  |  RFIs: 2 Open  |  Drawing Issues: 5 (1 Under Eval)', MG + 180, y + 12);
+    y += 24;
+
+    // THIS WEEK
+    checkPage(120);
+    section('This Week - ' + weekStr);
+    var acts = [
+        ['Grade Beams & Foundations', '90% - Stem walls SW done, NW 65%, sump pit poured', 'In Progress'],
+        ['Tower Crane Installation', 'Morrow Crane delivery/install 2/25 - foundation ready', 'In Progress'],
+        ['Marlena Building Reconstruction', 'Floor recon ongoing, asbestos resolved, pier caps poured', 'In Progress'],
+        ['Structural Steel - Shop Drawings', 'BSI coordinating with DH Steel, fabrication pending', 'Critical Path'],
+        ['Water Service Permit', 'EWW approved alt plan, BSI finalizing permit paperwork', 'In Progress'],
+        ['Electrical Underground', 'Vault installed, underground conduit runs continuing', 'In Progress']
+    ];
+    doc.setFillColor(26, 58, 92);
+    doc.rect(MG, y, CW, 16, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(255, 255, 255);
+    doc.text('Activity', MG + 6, y + 11);
+    doc.text('Detail', MG + 166, y + 11);
+    doc.text('Status', MG + 430, y + 11);
+    y += 16;
+    for (var ai = 0; ai < acts.length; ai++) {
+        var a = acts[ai];
+        if (ai % 2) { doc.setFillColor(248, 249, 250); doc.rect(MG, y, CW, 16, 'F'); }
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(44, 62, 80);
+        doc.text(a[0], MG + 6, y + 11);
+        doc.setFont('helvetica', 'normal');
+        doc.text(a[1].substring(0, 55), MG + 166, y + 11);
+        var sc = a[2] === 'Critical Path' ? RED : a[2] === 'Upcoming' ? GRAY : GREEN;
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5);
+        var sw = doc.getTextWidth(a[2]) + 10;
+        doc.setFillColor(sc[0], sc[1], sc[2]);
+        safeRect(MG + 426, y + 2, sw, 12, 3, 3, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.text(a[2], MG + 431, y + 10);
+        y += 16;
+    }
+    y += 8;
+
+    // SCHEDULE TRACKING
+    checkPage(90);
+    section('Schedule Tracking');
+    var sched = [
+        ['Overall Status:', 'YELLOW - Tower crane installed, steel fab still pending, Penelec EDU paid 3/2/26', GOLD],
+        ['Critical Path Item:', 'Structural steel shop drawings - BSI coordinating, fabrication pending approval', RED],
+        ['Progress:', 'Asbestos resolved, EWW alternate water plan approved, crane foundation poured', GREEN],
+        ['Upcoming Milestone:', 'Steel erection (Mar-May 2026) - 5th Street closures targeting 2/25-26 for crane', NAVY],
+        ['Schedule Risk:', 'DH Steel fabrication timeline — Penelec EDU cleared, waterline permit next gate', RED]
+    ];
+    for (var si = 0; si < sched.length; si++) {
+        var s = sched[si];
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+        doc.setTextColor(s[2][0], s[2][1], s[2][2]);
+        doc.text(s[0], MG + 6, y + 2);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(44, 62, 80);
+        var lw = doc.getTextWidth(s[0]) + 4;
+        var lines = doc.splitTextToSize(s[1], CW - lw - 12);
+        doc.text(lines, MG + 6 + lw, y + 2);
+        y += lines.length * 11 + 4;
+    }
+    y += 6;
+
+    // BUDGET TRACKING
+    checkPage(100);
+    section('Budget Tracking');
+    var bkpis = [
+        ['CONTRACT SUM', '$24,148,540'],
+        ['COMPLETED TO DATE', '$2,888,697 (12%)'],
+        ['CURRENT PAY APP (#6)', '$217,612'],
+        ['RETAINAGE HELD', '$288,870 (10%)']
+    ];
+    var bkw = (CW - 18) / 4;
+    for (var bki = 0; bki < bkpis.length; bki++) {
+        var bk = bkpis[bki];
+        var bbx = MG + bki * (bkw + 6);
+        doc.setFillColor(240, 243, 245);
+        safeRect(bbx, y, bkw, 30, 3, 3, 'F');
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(127, 140, 141);
+        doc.text(bk[0], bbx + 6, y + 11);
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
+        doc.text(bk[1], bbx + 6, y + 24);
+    }
+    y += 38;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(192, 57, 43);
+    doc.text('Budget Watch Item:', MG + 6, y);
+    doc.setFont('helvetica', 'normal'); doc.setTextColor(44, 62, 80);
+    var bNote = 'KAHN architect fee increase (PCN 002) - $420,530 pending. EDDC internal analysis recommends counter-offer of $250K-$320K based on hours-justified approach vs. automatic percentage escalation tied to material cost increases.';
+    var bLines = doc.splitTextToSize(bNote, CW - 100);
+    doc.text(bLines, MG + 106, y);
+    y += bLines.length * 10 + 10;
+
+    // PAYMENT FORECAST SUMMARY
+    checkPage(80);
+    section('Payment Forecast (Next 14 Months)');
+    var fqHeaders = ['Quarter', 'Period', 'Est. Total', 'Priority'];
+    var fqData = [
+        ['Q2 2026', 'Mar - May', '$3,500,000', 'Moderate'],
+        ['Q3 2026', 'Jun - Aug', '$6,100,000', 'CRITICAL - Peak Spend'],
+        ['Q4 2026', 'Sep - Nov', '$5,700,000', 'High - Interior Work'],
+        ['Q1 2027', 'Dec - Feb', '$4,100,000', 'Moderate - Wind Down'],
+        ['Q2 2027', 'Mar - Apr', '$1,860,000', 'Low - Closeout']
+    ];
+    var fqColW = [35, 40, 50, 80];
+    // Header
+    doc.setFillColor(26, 58, 92);
+    safeRect(MG, y, CW - 80, 14, 2, 2, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setTextColor(255, 255, 255);
+    var fqx = MG + 4;
+    for (var fhi = 0; fhi < fqHeaders.length; fhi++) { doc.text(fqHeaders[fhi], fqx, y + 10); fqx += fqColW[fhi]; }
+    y += 16;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(44, 62, 80);
+    for (var fri = 0; fri < fqData.length; fri++) {
+        if (fri % 2 === 0) { doc.setFillColor(245, 245, 245); safeRect(MG, y - 2, CW - 80, 12, 0, 0, 'F'); }
+        fqx = MG + 4;
+        for (var fci = 0; fci < fqData[fri].length; fci++) {
+            if (fci === 3 && fqData[fri][fci].indexOf('CRITICAL') >= 0) { doc.setTextColor(192, 57, 43); doc.setFont('helvetica', 'bold'); }
+            doc.text(fqData[fri][fci], fqx, y + 8);
+            doc.setTextColor(44, 62, 80); doc.setFont('helvetica', 'normal');
+            fqx += fqColW[fci];
+        }
+        y += 12;
+    }
+    y += 6;
+    doc.setFont('helvetica', 'italic'); doc.setFontSize(6.5); doc.setTextColor(127, 140, 141);
+    doc.text('Full monthly forecast with actual vs estimated tracking available on Financial Forecast tab.', MG + 4, y);
+    y += 14;
+
+    // KEY MILESTONES
+    checkPage(120);
+    section('Key Milestones');
+    var miles = [
+        ['Caisson Package', 'Jul-Oct 2025', 95, 'Complete'],
+        ['Grade Beams & Foundations', 'Oct 2025-Feb 2026', 90, 'In Progress'],
+        ['Marlena Demo & Reconstruction', 'Oct 2025-ongoing', 55, 'In Progress'],
+        ['Structural Steel (Fab & Erection)', 'Jan-May 2026', 15, 'Critical Path'],
+        ['Electrical Underground', 'Jan 2026-ongoing', 10, 'In Progress'],
+        ['Steel Erection', 'Mar-May 2026', 0, 'Upcoming'],
+        ['Concrete Slabs on Deck', 'May-Jul 2026', 0, 'Upcoming'],
+        ['Building Envelope', 'Jun-Nov 2026', 0, 'Upcoming'],
+        ['MEP & Interior Finishes', 'Sep 2026-Mar 2027', 0, 'Upcoming'],
+        ['Substantial Completion', 'April 7, 2027', -1, 'Target']
+    ];
+    doc.setFillColor(26, 58, 92);
+    doc.rect(MG, y, CW, 16, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(255, 255, 255);
+    doc.text('Milestone', MG + 6, y + 11);
+    doc.text('Timeline', MG + 176, y + 11);
+    doc.text('Progress', MG + 296, y + 11);
+    doc.text('Status', MG + 400, y + 11);
+    y += 16;
+    for (var mi = 0; mi < miles.length; mi++) {
+        var ms = miles[mi];
+        if (mi % 2) { doc.setFillColor(248, 249, 250); doc.rect(MG, y, CW, 16, 'F'); }
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(44, 62, 80);
+        doc.text(ms[0], MG + 6, y + 11);
+        doc.text(ms[1], MG + 176, y + 11);
+        if (ms[2] >= 0) {
+            doc.setFillColor(224, 228, 232);
+            doc.rect(MG + 286, y + 4, 80, 8, 'F');
+            if (ms[2] > 0) {
+                var pc = ms[2] >= 75 ? GREEN : ms[2] >= 25 ? GOLD : GRAY;
+                doc.setFillColor(pc[0], pc[1], pc[2]);
+                doc.rect(MG + 286, y + 4, Math.max(80 * ms[2] / 100, 4), 8, 'F');
+            }
+            doc.setFontSize(6.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(26, 58, 92);
+            doc.text(ms[2] + '%', MG + 370, y + 11);
+        } else {
+            doc.setFontSize(7); doc.setTextColor(26, 58, 92);
+            doc.text('--', MG + 320, y + 11);
+        }
+        var stc = ms[3] === 'Critical Path' ? RED : ms[3] === 'Complete' ? GREEN : ms[3] === 'Target' ? NAVY : ms[3] === 'In Progress' ? GOLD : GRAY;
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5);
+        var stw = doc.getTextWidth(ms[3]) + 10;
+        doc.setFillColor(stc[0], stc[1], stc[2]);
+        safeRect(MG + 396, y + 2, stw, 12, 3, 3, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.text(ms[3], MG + 401, y + 10);
+        y += 16;
+    }
+    y += 8;
+
+    // ITEMS REQUIRING ATTENTION
+    checkPage(100);
+    section('Items Requiring Attention');
+    var issues = [
+        ['Penelec EP-601 Splice Box REJECTED', 'Kahn / EDDC', 'CRIT', 'Must revise to non-fused disconnects. HOLD electrical work.'],
+        ['KAHN PCN 002 - Architect Fee Increase', 'EDDC Board', 'HIGH', '$420,530 request pending board action.'],
+        ['Structural Steel Shop Drawings', 'Kahn / DH Steel', 'HIGH', 'Critical path - BSI coordinating, fab pending.'],
+        ['Penelec EDU Payment + Line Removal', 'EDDC / BSI', 'DONE', 'Paid $12,208.18 on 3/2/2026. Gate cleared.'],
+        ['Drawing Issue 06 - Elec Doors/Distrib', 'Kahn / BSI', 'MED', 'Hardware + electrical service changes under eval.'],
+        ['5th Street Closures - Crane & Steel', 'BSI / EDDC', 'MED', 'Crane install 2/25-26. Steel erection Mar-May.'],
+        ['Water Service Permit - City of Erie', 'BSI', 'MED', 'EWW approved alt plan. Permit being finalized.'],
+        ['RTI Bulk Oil System - Location', 'EDDC / BSI', 'MED', 'RTI selected. Scouting tank location — fill box within 30ft of truck.'],
+        ['RFI 100 - Trash Compactor/ProWaste', 'Kahn', 'LOW', 'Kahn finalizing substitution review.']
+    ];
+    doc.setFillColor(26, 58, 92);
+    doc.rect(MG, y, CW, 16, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(255, 255, 255);
+    doc.text('Item', MG + 6, y + 11);
+    doc.text('Owner', MG + 196, y + 11);
+    doc.text('Priority', MG + 280, y + 11);
+    doc.text('Notes', MG + 330, y + 11);
+    y += 16;
+    for (var ii = 0; ii < issues.length; ii++) {
+        var iss = issues[ii];
+        checkPage(20);
+        if (ii % 2) { doc.setFillColor(248, 249, 250); doc.rect(MG, y, CW, 16, 'F'); }
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(44, 62, 80);
+        doc.text(iss[0].substring(0, 44), MG + 6, y + 11);
+        doc.text(iss[1], MG + 196, y + 11);
+        var ipc = iss[2] === 'HIGH' ? RED : iss[2] === 'MED' ? GOLD : GREEN;
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5);
+        var pw = doc.getTextWidth(iss[2]) + 10;
+        doc.setFillColor(ipc[0], ipc[1], ipc[2]);
+        safeRect(MG + 276, y + 2, pw, 12, 3, 3, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.text(iss[2], MG + 281, y + 10);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(44, 62, 80);
+        doc.text(iss[3].substring(0, 50), MG + 330, y + 11);
+        y += 16;
+    }
+
+    addFooter();
+    doc.save('Flagship_Commons_Briefing_' + dateSlug + '.pdf');
+}
+
+// ============================================
+// FALLBACK: Print-to-PDF (zero dependencies)
+// ============================================
+function generatePrintBriefing(todayStr, timeStr, weekStr, dateSlug) {
+    var w = window.open('', '_blank', 'width=850,height=1100');
+    if (!w) { alert('Please allow pop-ups to export the briefing.'); return; }
+    var html = [];
+    html.push('<!DOCTYPE html><html><head><title>Flagship Commons Briefing ' + dateSlug + '</title>');
+    html.push('<style>');
+    html.push('*{margin:0;padding:0;box-sizing:border-box}');
+    html.push('body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#2c3e50;padding:0;font-size:11px}');
+    html.push('@media print{.no-print{display:none!important}body{padding:0}}');
+    html.push('.header{background:#1a3a5c;color:#fff;padding:20px 32px;border-bottom:4px solid #d4a843}');
+    html.push('.header h1{font-size:20px;margin-bottom:4px}');
+    html.push('.header .sub{font-size:11px;opacity:.8}');
+    html.push('.badges{float:right;display:flex;gap:6px;margin-top:4px}');
+    html.push('.badge{padding:3px 10px;border-radius:12px;font-size:9px;font-weight:700;text-transform:uppercase}');
+    html.push('.bg-green{background:#2e8b57;color:#fff}.bg-gold{background:#d4a843;color:#000}');
+    html.push('.main{padding:16px 32px}');
+    html.push('.section{background:#1a3a5c;color:#fff;padding:6px 12px;font-weight:700;font-size:11px;text-transform:uppercase;margin:14px 0 8px;letter-spacing:.5px}');
+    html.push('.kpi-row{display:flex;gap:8px;margin-bottom:12px}');
+    html.push('.kpi{flex:1;background:#f4f6f8;padding:8px 10px;border-left:3px solid #1a3a5c;border-radius:3px}');
+    html.push('.kpi .label{font-size:8px;color:#7f8c8d;text-transform:uppercase;letter-spacing:.5px}');
+    html.push('.kpi .val{font-size:18px;font-weight:700;color:#1a3a5c;margin:2px 0}');
+    html.push('.kpi .sub{font-size:8px;color:#7f8c8d}');
+    html.push('table{width:100%;border-collapse:collapse;font-size:10px;margin-bottom:8px}');
+    html.push('th{background:#1a3a5c;color:#fff;padding:5px 8px;text-align:left;font-size:9px}');
+    html.push('td{padding:5px 8px;border-bottom:1px solid #e0e4e8}');
+    html.push('tr:nth-child(even){background:#f8f9fa}');
+    html.push('.pill{display:inline-block;padding:2px 8px;border-radius:8px;font-size:8px;font-weight:700;color:#fff}');
+    html.push('.pill-green{background:#2e8b57}.pill-gold{background:#d4a843;color:#000}.pill-red{background:#c0392b}.pill-gray{background:#7f8c8d}.pill-navy{background:#1a3a5c}');
+    html.push('.sched-item{margin-bottom:4px}.sched-label{font-weight:700;font-size:10px}.sched-text{font-size:10px}');
+    html.push('.watch{background:#fff3f3;border-left:3px solid #c0392b;padding:6px 10px;margin-top:6px;font-size:10px}');
+    html.push('.bar-bg{display:inline-block;width:80px;height:8px;background:#e0e4e8;border-radius:4px;vertical-align:middle}');
+    html.push('.bar-fill{display:inline-block;height:8px;border-radius:4px}');
+    html.push('.footer{background:#1a3a5c;color:#fff;padding:8px 32px;font-size:8px;text-align:center;margin-top:20px}');
+    html.push('.print-btn{display:block;margin:16px auto;padding:12px 32px;background:#1a3a5c;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer}');
+    html.push('.print-btn:hover{background:#2c5f8a}');
+    html.push('</style></head><body>');
+
+    // Print button
+    html.push('<div class="no-print" style="background:#f4f6f8;padding:12px;text-align:center">');
+    html.push('<button class="print-btn" onclick="window.print()">Save as PDF (Ctrl+P / Cmd+P)</button>');
+    html.push('<p style="font-size:11px;color:#7f8c8d;margin-top:6px">In the print dialog, select <strong>"Save as PDF"</strong> as the destination, then click Save.</p></div>');
+
+    // Header
+    html.push('<div class="header"><div class="badges">');
+    html.push('<span class="badge bg-green">SAFETY: GREEN</span>');
+    html.push('<span class="badge bg-gold">BUDGET: YELLOW</span>');
+    html.push('<span class="badge bg-gold">SCHEDULE: YELLOW</span>');
+    html.push('</div>');
+    html.push('<h1>FLAGSHIP COMMONS</h1>');
+    html.push('<div class="sub">Project Briefing &nbsp;|&nbsp; Erie Downtown Development Corporation &nbsp;|&nbsp; ' + todayStr + ' &nbsp;|&nbsp; ' + timeStr + '</div></div>');
+
+    html.push('<div class="main">');
+
+    // Executive Summary
+    html.push('<div class="section" style="background:#d4a843;color:#1a3a5c">EXECUTIVE SUMMARY / MEETING AGENDA</div>');
+    html.push('<ul style="margin:0 0 12px 16px;padding:0;font-size:10px;line-height:1.7">');
+    html.push('<li>Overall project health: <strong>YELLOW</strong> — schedule and budget under watch, safety remains GREEN</li>');
+    html.push('<li>Contract sum at $24.15M (GMP) — 12% billed to date ($2.89M), on pace through Pay App #6</li>');
+    html.push('<li>Grade beams & foundations 90% — stem walls: SW complete, NW 65%, elevator sump pit poured</li>');
+    html.push('<li>Tower crane installed 2/25 (Morrow Crane) — enables vertical construction phase</li>');
+    html.push('<li style="color:#c0392b"><strong>Structural steel shop drawings on CRITICAL PATH — BSI coordinating, fabrication pending</strong></li>');
+    html.push('<li>Asbestos in Marlena RESOLVED (MM17) — abatement completed, no further impact</li>');
+    html.push('<li>EWW approved alternate water plan — uses existing 2021 taps, BSI finalizing permit</li>');
+    html.push('<li style="color:#c0392b"><strong>BUDGET WATCH: KAHN PCN 002 architect fee increase of $420,530 pending board action</strong></li>');
+    html.push('<li>NEW: Drawing Issue 06 — electrified doors hardware + electrical distribution changes under eval</li>');
+    html.push('<li style="color:#c0392b"><strong>CRITICAL: Penelec REJECTED splice box on EP-601 — KAHN must revise to non-fused disconnects. DO NOT build to current plans. DR#345923557</strong></li>');
+    html.push('<li>Penelec EDU paid 3/2/2026 ($12,208.18) — waterline permit gate cleared</li>');
+    html.push('<li>5th Street closures targeting 2/25-26 for crane, additional closures for steel erection (Mar-May)</li>');
+    html.push('<li>Target substantial completion: April 7, 2027 — currently tracking with minor delays</li>');
+    html.push('</ul>');
+
+    // Project Snapshot
+    html.push('<div class="section">Project Snapshot</div>');
+    html.push('<div class="kpi-row">');
+    html.push('<div class="kpi"><div class="label">Contract Sum</div><div class="val">$24.15M</div><div class="sub">Current GMP</div></div>');
+    html.push('<div class="kpi"><div class="label">Billed to Date</div><div class="val">$2.89M</div><div class="sub">12% of contract</div></div>');
+    html.push('<div class="kpi"><div class="label">Balance Remaining</div><div class="val">$21.26M</div><div class="sub">$288,870 retainage</div></div>');
+    html.push('<div class="kpi"><div class="label">Target Completion</div><div class="val">Apr 2027</div><div class="sub">18-month duration</div></div>');
+    html.push('</div>');
+
+    // Safety + Document tracking
+    var safetyDaysPrint = Math.floor((new Date() - new Date(2025, 9, 1)) / (1000*60*60*24));
+    html.push('<div style="background:#d6ead6;border-left:4px solid #2e8b57;padding:6px 12px;margin:8px 0;border-radius:3px;font-size:10px;display:flex;justify-content:space-between">');
+    html.push('<strong style="color:#155724">' + safetyDaysPrint + ' DAYS WITHOUT INCIDENT</strong>');
+    html.push('<span>PCNs: 1 Approved / 1 Pending ($420K) &nbsp;|&nbsp; RFIs: 2 Open &nbsp;|&nbsp; Drawing Issues: 5 (1 Under Eval)</span>');
+    html.push('</div>');
+
+    // This Week
+    html.push('<div class="section">This Week - ' + weekStr + '</div>');
+    html.push('<table><tr><th>Activity</th><th>Detail</th><th>Status</th></tr>');
+    var acts = [
+        ['Grade Beams & Foundations', '90% - Stem walls SW done, NW 65%, sump pit poured', 'In Progress', 'green'],
+        ['Tower Crane Installation', 'Morrow Crane delivery/install 2/25 - foundation ready', 'In Progress', 'green'],
+        ['Marlena Building Reconstruction', 'Floor recon ongoing, asbestos resolved, pier caps poured', 'In Progress', 'green'],
+        ['Structural Steel - Shop Drawings', 'BSI coordinating with DH Steel, fabrication pending', 'Critical Path', 'red'],
+        ['Water Service Permit', 'EWW approved alt plan, BSI finalizing permit paperwork', 'In Progress', 'green'],
+        ['Electrical Underground', 'Vault installed, underground conduit runs continuing', 'In Progress', 'green']
+    ];
+    for (var i = 0; i < acts.length; i++) {
+        html.push('<tr><td><strong>' + acts[i][0] + '</strong></td><td>' + acts[i][1] + '</td><td><span class="pill pill-' + acts[i][3] + '">' + acts[i][2] + '</span></td></tr>');
+    }
+    html.push('</table>');
+
+    // Schedule Tracking
+    html.push('<div class="section">Schedule Tracking</div>');
+    html.push('<div class="sched-item"><span class="sched-label" style="color:#d4a843">Overall Status: </span><span class="sched-text">YELLOW - Tower crane installed, steel fab still pending, Penelec EDU paid 3/2/26</span></div>');
+    html.push('<div class="sched-item"><span class="sched-label" style="color:#c0392b">Critical Path Item: </span><span class="sched-text">Structural steel shop drawings - BSI coordinating, fabrication pending approval</span></div>');
+    html.push('<div class="sched-item"><span class="sched-label" style="color:#2e8b57">Progress: </span><span class="sched-text">Asbestos resolved, EWW alternate water plan approved, crane foundation poured</span></div>');
+    html.push('<div class="sched-item"><span class="sched-label" style="color:#1a3a5c">Upcoming Milestone: </span><span class="sched-text">Steel erection (Mar-May 2026) - 5th Street closures targeting 2/25-26 for crane</span></div>');
+    html.push('<div class="sched-item"><span class="sched-label" style="color:#c0392b">Schedule Risk: </span><span class="sched-text">DH Steel fabrication timeline — Penelec EDU cleared, waterline permit next gate</span></div>');
+
+    // Budget Tracking
+    html.push('<div class="section">Budget Tracking</div>');
+    html.push('<div class="kpi-row">');
+    html.push('<div class="kpi"><div class="label">Contract Sum</div><div class="val" style="font-size:13px">$24,148,540</div></div>');
+    html.push('<div class="kpi"><div class="label">Completed to Date</div><div class="val" style="font-size:13px">$2,888,697 (12%)</div></div>');
+    html.push('<div class="kpi"><div class="label">Current Pay App (#6)</div><div class="val" style="font-size:13px">$217,612</div></div>');
+    html.push('<div class="kpi"><div class="label">Retainage Held</div><div class="val" style="font-size:13px">$288,870 (10%)</div></div>');
+    html.push('</div>');
+    html.push('<div class="watch"><strong style="color:#c0392b">Budget Watch Item:</strong> KAHN architect fee increase (PCN 002) - $420,530 pending. EDDC internal analysis recommends counter-offer of $250K-$320K based on hours-justified approach vs. automatic percentage escalation tied to material cost increases.</div>');
+
+    // Key Milestones
+    html.push('<div class="section">Key Milestones</div>');
+    html.push('<table><tr><th>Milestone</th><th>Timeline</th><th>Progress</th><th>Status</th></tr>');
+    var miles = [
+        ['Caisson Package', 'Jul-Oct 2025', 95, 'Complete', 'green'],
+        ['Grade Beams & Foundations', 'Oct 2025-Feb 2026', 90, 'In Progress', 'gold'],
+        ['Marlena Demo & Reconstruction', 'Oct 2025-ongoing', 55, 'In Progress', 'gold'],
+        ['Structural Steel (Fab & Erection)', 'Jan-May 2026', 15, 'Critical Path', 'red'],
+        ['Electrical Underground', 'Jan 2026-ongoing', 10, 'In Progress', 'gray'],
+        ['Steel Erection', 'Mar-May 2026', 0, 'Upcoming', 'gray'],
+        ['Concrete Slabs on Deck', 'May-Jul 2026', 0, 'Upcoming', 'gray'],
+        ['Building Envelope', 'Jun-Nov 2026', 0, 'Upcoming', 'gray'],
+        ['MEP & Interior Finishes', 'Sep 2026-Mar 2027', 0, 'Upcoming', 'gray'],
+        ['Substantial Completion', 'April 7, 2027', -1, 'Target', 'navy']
+    ];
+    for (var mi = 0; mi < miles.length; mi++) {
+        var m = miles[mi];
+        var barHtml = '';
+        if (m[2] >= 0) {
+            var bc = m[2] >= 75 ? '#2e8b57' : m[2] >= 25 ? '#d4a843' : '#7f8c8d';
+            barHtml = '<span class="bar-bg"><span class="bar-fill" style="width:' + m[2] + '%;background:' + bc + '"></span></span> ' + m[2] + '%';
+        } else {
+            barHtml = '--';
+        }
+        html.push('<tr><td>' + m[0] + '</td><td>' + m[1] + '</td><td>' + barHtml + '</td><td><span class="pill pill-' + m[4] + '">' + m[3] + '</span></td></tr>');
+    }
+    html.push('</table>');
+
+    // Items Requiring Attention
+    html.push('<div class="section">Items Requiring Attention</div>');
+    html.push('<table><tr><th>Item</th><th>Owner</th><th>Priority</th><th>Notes</th></tr>');
+    var issues = [
+        ['Penelec EP-601 Splice Box REJECTED', 'Kahn / EDDC', 'CRIT', 'Must revise to non-fused disconnects. HOLD electrical work.', 'red'],
+        ['KAHN PCN 002 - Architect Fee Increase', 'EDDC Board', 'HIGH', '$420,530 request pending board action.', 'red'],
+        ['Structural Steel Shop Drawings', 'Kahn / DH Steel', 'HIGH', 'Critical path - BSI coordinating, fab pending.', 'red'],
+        ['Penelec EDU Payment + Line Removal', 'EDDC / BSI', 'DONE', 'Paid $12,208.18 on 3/2/2026. Gate cleared.', 'green'],
+        ['Drawing Issue 06 - Elec Doors/Distrib', 'Kahn / BSI', 'MED', 'Hardware + electrical service changes under eval.', 'gold'],
+        ['5th Street Closures - Crane & Steel', 'BSI / EDDC', 'MED', 'Crane install 2/25-26. Steel erection Mar-May.', 'gold'],
+        ['Water Service Permit - City of Erie', 'BSI', 'MED', 'EWW approved alt plan. Permit being finalized.', 'gold'],
+        ['RTI Bulk Oil System - Location', 'EDDC / BSI', 'MED', 'RTI selected. Scouting tank location — fill box within 30ft of truck.', 'gold'],
+        ['RFI 100 - Trash Compactor/ProWaste', 'Kahn', 'LOW', 'Kahn finalizing substitution review.', 'green']
+    ];
+    for (var ii = 0; ii < issues.length; ii++) {
+        var is2 = issues[ii];
+        html.push('<tr><td>' + is2[0] + '</td><td>' + is2[1] + '</td><td><span class="pill pill-' + is2[4] + '">' + is2[2] + '</span></td><td>' + is2[3] + '</td></tr>');
+    }
+    html.push('</table>');
+
+    html.push('</div>'); // end main
+
+    // Footer
+    html.push('<div class="footer">EDDC Flagship Commons &nbsp;|&nbsp; 24-28 North Park Row, Erie PA 16501 &nbsp;|&nbsp; Confidential &nbsp;|&nbsp; Generated ' + todayStr + '</div>');
+
+    html.push('</body></html>');
+
+    w.document.write(html.join(''));
+    w.document.close();
+}
+
+// ===== CONTACT DIRECTORY =====
+var PROJECT_CONTACTS = [
+    {name:"Ben Petrone", org:"Building Systems Inc.", trade:"", phone:"(814) 864-4851", email:"bpetrone@buildingsystems-inc.net"},
+    {name:"Britt Laham", org:"Albert Kahn Associates, Inc.", trade:"Architect", phone:"(313) 202-7798", email:"britt.laham@akahn.com"},
+    {name:"Chas Campbell", org:"Acurlite Structural Skylights", trade:"", phone:"(570) 759-6882", email:"ccampbell@acurlite.com"},
+    {name:"Christopher Beyer", org:"Penelec / FirstEnergy", trade:"", phone:"(814) 868-8737", email:"cbeyer@firstenergycorp.com"},
+    {name:"Chris Moisio", org:"Corporate Glass", trade:"", phone:"(814) 455-5151", email:"chris.moisio@corporateglassinc.com"},
+    {name:"Cody Lybrook", org:"Building Systems Inc.", trade:"Foreman", phone:"(814) 520-9851", email:"clybrook@buildingsystems-inc.net"},
+    {name:"Corey Cook", org:"EDDC", trade:"Owner", phone:"(814) 566-2733", email:"corey.cook@erieddc.org"},
+    {name:"David Bergman", org:"Albert Kahn Associates, Inc.", trade:"Architect", phone:"(313) 500-6127", email:"david.bergman@akahn.com"},
+    {name:"Doug Wilson", org:"Rabe", trade:"", phone:"(814) 456-5374", email:"dwilson@rabehvac.com"},
+    {name:"Gabriela Lopez", org:"RGS Products Inc", trade:"", phone:"(814) 282-7737", email:"gabrielal@rgsproductsinc.com"},
+    {name:"George David", org:"Perry Construction", trade:"Foreman", phone:"(304) 709-3035", email:"GDavid@perryconst.com"},
+    {name:"Holly Schaaf", org:"Building Systems Inc.", trade:"", phone:"", email:"hschaaf@buildingsystems-inc.net"},
+    {name:"Jedediah Smith", org:"Penelec / FirstEnergy", trade:"", phone:"", email:"smithjj@firstenergycorp.com"},
+    {name:"Jeff H", org:"DH Steel Products", trade:"", phone:"(814) 459-2715", email:"jherbe@dhsteel.org"},
+    {name:"Jen Stancil", org:"Lathrop Electric", trade:"", phone:"(814) 455-1772", email:"jen@lathroplei.com"},
+    {name:"Jeremy Yost", org:"Building Systems Inc.", trade:"", phone:"(814) 864-4851", email:"jyost@buildingsystems-inc.net"},
+    {name:"Jesse Jeckel", org:"RGS Products Inc", trade:"", phone:"", email:"jessej@rgsproductsinc.com"},
+    {name:"John Hewitt", org:"Building Systems Inc.", trade:"", phone:"(814) 864-4851", email:"jfhewitt@buildingsystems-inc.net"},
+    {name:"Katie Struchen", org:"DH Steel", trade:"", phone:"(814) 459-2715", email:"engineering@dhsteel.org"},
+    {name:"Keith Hodinko", org:"Building Systems Inc.", trade:"", phone:"", email:"keith@buildingsystems-inc.net"},
+    {name:"Kevin Sisson", org:"Pacific Rod Iron, LLC", trade:"", phone:"", email:"ksisson@pacificrodiron.com"},
+    {name:"Lance Blakeslee", org:"Building Systems Inc.", trade:"", phone:"(814) 864-4851", email:"lblakeslee@buildingsystems-inc.net"},
+    {name:"Matt Evans", org:"Building Systems Inc.", trade:"", phone:"(814) 864-4851", email:"mevans@buildingsystems-inc.net"},
+    {name:"Matt Tobin", org:"DH Steel Products", trade:"", phone:"(814) 464-6069", email:"mtobin@dhsteel.org"},
+    {name:"Matthew Pauvlinch", org:"McCrossin Foundations", trade:"", phone:"(412) 770-7155", email:"mpauvlinch@mccrossin.com"},
+    {name:"Micah Chernicky", org:"Building Systems Inc.", trade:"", phone:"(814) 864-4851", email:"micah@buildingsystems-inc.net"},
+    {name:"Michelle Firman", org:"Dwyer Plumbing", trade:"", phone:"(814) 679-4108", email:"Djd55@aol.com"},
+    {name:"Nicholas Barman", org:"Penelec / FirstEnergy", trade:"Engineering / Utility Coordination Liaison", phone:"(814) 868-8840", email:"nbarman@firstenergycorp.com"},
+    {name:"Mike Conway", org:"Perry Construction", trade:"Foreman", phone:"(814) 323-4920", email:"mconway@perryconst.com"},
+    {name:"Robi Lombardo", org:"Penelec / FirstEnergy", trade:"", phone:"(724) 504-0507", email:"lombardor@firstenergycorp.com"},
+    {name:"Samantha Partsch", org:"Building Systems Inc.", trade:"", phone:"(814) 864-4851", email:"spartsch@buildingsystems-inc.net"},
+    {name:"Scott Fisher", org:"Corporate Glass Inc.", trade:"", phone:"(814) 602-4722", email:"scott@corporateglassinc.com"},
+    {name:"Sean Hodinko", org:"Building Systems Inc.", trade:"", phone:"(814) 897-6619", email:"shodinko@buildingsystems-inc.net"},
+    {name:"Seth Blizzard", org:"RGS Products", trade:"", phone:"(724) 766-4887", email:"seth.blizzard@yahoo.com"},
+    {name:"Shane Uber", org:"RGS Products Inc", trade:"", phone:"(814) 969-3659", email:"shaneu@rgsproductsinc.com"},
+    {name:"Suzanne Trubia", org:"Otis Elevator", trade:"", phone:"(585) 498-4530", email:"suzanne.trubia@otis.com"},
+    {name:"Tammy Myron", org:"Perry Construction", trade:"", phone:"(814) 459-8551", email:"tammym@perryconst.com"},
+    {name:"Tim Palmer", org:"Perry Construction", trade:"", phone:"(814) 459-8551", email:"timpalmer@perryconst.com"},
+    {name:"Tim Presta", org:"Presta Contractor Supply, Inc", trade:"", phone:"(814) 450-0929", email:"tim.presta@srsbuildingproducts.com"},
+    {name:"Tim Presta", org:"Presta Supply", trade:"", phone:"(814) 833-0655", email:"tpresta@prestasupply.com"},
+    {name:"Todd Essman", org:"Perry Construction", trade:"", phone:"", email:"TEssman@perryconst.com"},
+    {name:"Tyler Ditrich", org:"Corporate Glass Inc", trade:"", phone:"(814) 464-3427", email:"tyler@corporateglassinc.com"},
+    {name:"Zach Egan", org:"Perry Construction", trade:"", phone:"(724) 777-3136", email:"zegan@perryconst.com"}
+];
+
+var currentOrgFilter = 'all';
+
+function getInitials(name) {
+    var parts = name.split(' ');
+    return (parts[0][0] + (parts.length > 1 ? parts[parts.length-1][0] : '')).toUpperCase();
+}
+
+function getAvatarColor(name) {
+    var colors = ['#1a3a5c','#2e8b57','#c0392b','#8e44ad','#d4a843','#2980b9','#16a085','#e67e22','#34495e','#27ae60'];
+    var hash = 0;
+    for (var i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+}
+
+function renderContacts(contacts) {
+    var gridHtml = '';
+    var tableHtml = '';
+    contacts.forEach(function(c) {
+        var initials = getInitials(c.name);
+        var color = getAvatarColor(c.name);
+        var phoneLink = c.phone ? '<a href="tel:' + c.phone.replace(/[^0-9+]/g,'') + '">' + c.phone + '</a>' : '—';
+        var emailLink = '<a href="mailto:' + c.email + '">' + c.email + '</a>';
+        gridHtml += '<div class="contact-card" data-org="' + c.org + '" data-search="' + (c.name + ' ' + c.org + ' ' + c.trade + ' ' + c.phone + ' ' + c.email).toLowerCase() + '">';
+        gridHtml += '<div class="contact-avatar" style="background:' + color + '">' + initials + '</div>';
+        gridHtml += '<div class="contact-info">';
+        gridHtml += '<div class="contact-name">' + c.name + '</div>';
+        gridHtml += '<div class="contact-org">' + c.org + '</div>';
+        if (c.trade) gridHtml += '<div class="contact-trade">' + c.trade + '</div>';
+        gridHtml += '<div class="contact-details">';
+        if (c.phone) gridHtml += '<div class="contact-detail"><span class="contact-icon">&#9742;</span> ' + phoneLink + '</div>';
+        gridHtml += '<div class="contact-detail"><span class="contact-icon">&#9993;</span> ' + emailLink + '</div>';
+        gridHtml += '</div></div></div>';
+        tableHtml += '<tr data-org="' + c.org + '" data-search="' + (c.name + ' ' + c.org + ' ' + c.trade + ' ' + c.phone + ' ' + c.email).toLowerCase() + '">';
+        tableHtml += '<td><strong>' + c.name + '</strong></td>';
+        tableHtml += '<td>' + c.org + '</td>';
+        tableHtml += '<td>' + (c.trade || '—') + '</td>';
+        tableHtml += '<td>' + (c.phone ? phoneLink : '—') + '</td>';
+        tableHtml += '<td>' + emailLink + '</td></tr>';
+    });
+    document.getElementById('contactGrid').innerHTML = gridHtml;
+    document.getElementById('contactTableBody').innerHTML = tableHtml;
+}
+
+function filterContacts() {
+    var query = document.getElementById('contactSearch').value.toLowerCase();
+    var cards = document.querySelectorAll('.contact-card');
+    var rows = document.querySelectorAll('#contactTableBody tr');
+    var count = 0;
+    function shouldShow(el) {
+        var search = el.getAttribute('data-search');
+        var org = el.getAttribute('data-org');
+        var matchesSearch = !query || search.indexOf(query) !== -1;
+        var matchesOrg = currentOrgFilter === 'all' || org.toLowerCase().indexOf(currentOrgFilter.toLowerCase()) !== -1;
+        return matchesSearch && matchesOrg;
+    }
+    cards.forEach(function(card) {
+        var show = shouldShow(card);
+        card.style.display = show ? '' : 'none';
+        if (show) count++;
+    });
+    rows.forEach(function(row) {
+        row.style.display = shouldShow(row) ? '' : 'none';
+    });
+    document.getElementById('contactCount').textContent = count + ' contact' + (count !== 1 ? 's' : '');
+}
+
+function filterOrg(org, btn) {
+    currentOrgFilter = org;
+    document.querySelectorAll('.contact-filter-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    filterContacts();
+}
+
+function setContactView(mode) {
+    var grid = document.getElementById('contactGrid');
+    var table = document.getElementById('contactTable');
+    var gridBtn = document.getElementById('gridViewBtn');
+    var tableBtn = document.getElementById('tableViewBtn');
+    if (mode === 'grid') {
+        grid.className = 'contact-grid-view active';
+        table.className = 'contact-table-view';
+        gridBtn.classList.add('active');
+        tableBtn.classList.remove('active');
+    } else {
+        grid.className = 'contact-grid-view';
+        table.className = 'contact-table-view active';
+        gridBtn.classList.remove('active');
+        tableBtn.classList.add('active');
+    }
+}
+
+// Render contacts on load
+renderContacts(PROJECT_CONTACTS);
+
+// ===== FINANCIAL FORECAST =====
+// To update actuals: change the "actual" value for each month as pay apps come in.
+// Set actual to null for months that haven't happened yet.
+var GMP = 24148540;
+var BILLED_BEFORE_FORECAST = 2888697; // Through Pay App #6 (2/20/2026)
+
+var FORECAST_DATA = [
+    // Q2 2026
+    { month: "Mar 2026", payApp: 7,  estimated: 850000,   actual: null, activity: "Steel erection begins, tower crane mobilization", quarter: "Q2 2026", peak: false },
+    { month: "Apr 2026", payApp: 8,  estimated: 1200000,  actual: null, activity: "Steel erection active, exterior sheathing starts", quarter: "Q2 2026", peak: false },
+    { month: "May 2026", payApp: 9,  estimated: 1450000,  actual: null, activity: "Steel topping out, glass & glazing procurement", quarter: "Q2 2026", peak: false },
+    // Q3 2026
+    { month: "Jun 2026", payApp: 10, estimated: 1800000,  actual: null, activity: "Exterior envelope, roofing starts, MEP rough-in begins", quarter: "Q3 2026", peak: true },
+    { month: "Jul 2026", payApp: 11, estimated: 2100000,  actual: null, activity: "Peak — envelope + MEP rough-in + elevator install", quarter: "Q3 2026", peak: true },
+    { month: "Aug 2026", payApp: 12, estimated: 2200000,  actual: null, activity: "Peak — MEP continues, interior framing starts", quarter: "Q3 2026", peak: true },
+    // Q4 2026
+    { month: "Sep 2026", payApp: 13, estimated: 2100000,  actual: null, activity: "Interior framing, drywall begins, MEP trim-out", quarter: "Q4 2026", peak: false },
+    { month: "Oct 2026", payApp: 14, estimated: 1900000,  actual: null, activity: "Drywall/finishes, flooring starts, restaurant build-out begins", quarter: "Q4 2026", peak: false },
+    { month: "Nov 2026", payApp: 15, estimated: 1700000,  actual: null, activity: "Finishes continue, restaurant kitchen rough-in, RTI oil system", quarter: "Q4 2026", peak: false },
+    // Q1 2027
+    { month: "Dec 2026", payApp: 16, estimated: 1500000,  actual: null, activity: "Restaurant build-out, punch list begins on early floors", quarter: "Q1 2027", peak: false },
+    { month: "Jan 2027", payApp: 17, estimated: 1400000,  actual: null, activity: "Final inspections begin, tenant fit-out starts", quarter: "Q1 2027", peak: false },
+    { month: "Feb 2027", payApp: 18, estimated: 1200000,  actual: null, activity: "CO process, tenant fit-out continues, punch list", quarter: "Q1 2027", peak: false },
+    // Q2 2027
+    { month: "Mar 2027", payApp: 19, estimated: 800000,   actual: null, activity: "Final punch, CO received, retainage billing", quarter: "Q2 2027", peak: false },
+    { month: "Apr 2027", payApp: 20, estimated: 1059843,  actual: null, activity: "Substantial completion + retainage release + closeout", quarter: "Q2 2027", peak: false }
+];
+
+function renderForecast() {
+    var tbody = document.getElementById('forecastTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    var cumEst = BILLED_BEFORE_FORECAST;
+    var cumAct = BILLED_BEFORE_FORECAST;
+    var totalEst = 0;
+    var totalAct = 0;
+    var totalActualMonths = 0;
+    var currentQuarter = '';
+    var now = new Date();
+    var currentMonth = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+
+    FORECAST_DATA.forEach(function(row, idx) {
+        // Quarter header
+        if (row.quarter !== currentQuarter) {
+            currentQuarter = row.quarter;
+            var qtr = document.createElement('tr');
+            qtr.className = 'forecast-quarter-header';
+            qtr.innerHTML = '<td colspan="10">' + currentQuarter + '</td>';
+            tbody.appendChild(qtr);
+        }
+
+        cumEst += row.estimated;
+        var hasActual = row.actual !== null && row.actual !== undefined;
+        if (hasActual) {
+            cumAct += row.actual;
+            totalAct += row.actual;
+            totalActualMonths++;
+        }
+        totalEst += row.estimated;
+
+        var variance = hasActual ? row.actual - row.estimated : null;
+        var varPct = hasActual && row.estimated > 0 ? ((row.actual - row.estimated) / row.estimated * 100) : null;
+        var pctGMP = hasActual ? (cumAct / GMP * 100) : (cumEst / GMP * 100);
+
+        // Determine row state
+        var monthParts = row.month.split(' ');
+        var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var mIdx = monthNames.indexOf(monthParts[0]);
+        var yr = parseInt(monthParts[1]);
+        var rowDate = yr + '-' + String(mIdx+1).padStart(2,'0');
+        var isCurrent = rowDate === currentMonth;
+        var isFuture = !hasActual && !isCurrent;
+
+        var tr = document.createElement('tr');
+        if (isCurrent) tr.className = 'current-row';
+        else if (row.peak && isFuture) tr.className = 'peak-row';
+        else if (isFuture) tr.className = 'future-row';
+
+        var varClass = '';
+        var varStr = '—';
+        var varPctStr = '—';
+        if (hasActual) {
+            if (variance > 0) { varClass = 'var-over'; varStr = '+$' + Math.abs(variance).toLocaleString(); varPctStr = '+' + varPct.toFixed(1) + '%'; }
+            else if (variance < 0) { varClass = 'var-under'; varStr = '-$' + Math.abs(variance).toLocaleString(); varPctStr = varPct.toFixed(1) + '%'; }
+            else { varStr = '$0'; varPctStr = '0%'; }
+        }
+
+        tr.innerHTML =
+            '<td style="font-weight:600;">' + row.month + '</td>' +
+            '<td style="text-align:center;">#' + row.payApp + '</td>' +
+            '<td class="est-cell" style="text-align:right;">$' + row.estimated.toLocaleString() + '</td>' +
+            '<td class="act-cell" style="text-align:right;">' + (hasActual ? '$' + row.actual.toLocaleString() : '<span style="color:#ccc;">—</span>') + '</td>' +
+            '<td class="var-cell ' + varClass + '" style="text-align:right;">' + varStr + '</td>' +
+            '<td class="var-cell ' + varClass + '" style="text-align:center;">' + varPctStr + '</td>' +
+            '<td style="text-align:right;">$' + cumEst.toLocaleString() + '</td>' +
+            '<td style="text-align:right;">' + (hasActual ? '$' + cumAct.toLocaleString() : '<span style="color:#ccc;">—</span>') + '</td>' +
+            '<td style="text-align:center;">' + pctGMP.toFixed(0) + '%</td>' +
+            '<td style="font-size:11px; color:var(--text-light); white-space:normal; max-width:220px;">' + row.activity + '</td>';
+        tbody.appendChild(tr);
+    });
+
+    // Total row
+    var totalTr = document.createElement('tr');
+    totalTr.className = 'total-row';
+    totalTr.innerHTML =
+        '<td>TOTAL FORECAST</td><td></td>' +
+        '<td style="text-align:right;">$' + totalEst.toLocaleString() + '</td>' +
+        '<td style="text-align:right;">' + (totalAct > 0 ? '$' + totalAct.toLocaleString() : '—') + '</td>' +
+        '<td colspan="2"></td>' +
+        '<td style="text-align:right;">$' + (BILLED_BEFORE_FORECAST + totalEst).toLocaleString() + '</td>' +
+        '<td style="text-align:right;">' + (totalAct > 0 ? '$' + (BILLED_BEFORE_FORECAST + totalAct).toLocaleString() : '—') + '</td>' +
+        '<td style="text-align:center;">100%</td><td></td>';
+    tbody.appendChild(totalTr);
+
+    // ── KPIs ──
+    var kpiDiv = document.getElementById('forecastKPIs');
+    if (kpiDiv) {
+        var remaining = GMP - BILLED_BEFORE_FORECAST - totalAct;
+        var nextPayApp = FORECAST_DATA.find(function(r) { return r.actual === null || r.actual === undefined; });
+        var nextEst = nextPayApp ? nextPayApp.estimated : 0;
+        var nextMonth = nextPayApp ? nextPayApp.month : 'Complete';
+        var totalVariance = totalAct - FORECAST_DATA.slice(0, totalActualMonths).reduce(function(s,r){ return s + r.estimated; }, 0);
+        var varColor = totalVariance > 0 ? 'fk-red' : totalVariance < 0 ? 'fk-green' : 'fk-blue';
+        var varLabel = totalVariance > 0 ? '+$' + Math.abs(totalVariance).toLocaleString() + ' over' : totalVariance < 0 ? '-$' + Math.abs(totalVariance).toLocaleString() + ' under' : 'On track';
+
+        kpiDiv.innerHTML =
+            '<div class="forecast-kpi fk-blue"><div class="fk-label">GMP Contract</div><div class="fk-value">$' + (GMP/1000000).toFixed(2) + 'M</div><div class="fk-sub">Total contract sum</div></div>' +
+            '<div class="forecast-kpi fk-green"><div class="fk-label">Billed to Date</div><div class="fk-value">$' + ((BILLED_BEFORE_FORECAST + totalAct)/1000000).toFixed(2) + 'M</div><div class="fk-sub">' + ((BILLED_BEFORE_FORECAST + totalAct)/GMP*100).toFixed(0) + '% of GMP</div></div>' +
+            '<div class="forecast-kpi fk-yellow"><div class="fk-label">Remaining</div><div class="fk-value">$' + (remaining > 1000000 ? (remaining/1000000).toFixed(2) + 'M' : (remaining/1000).toFixed(0) + 'K') + '</div><div class="fk-sub">' + (remaining/GMP*100).toFixed(0) + '% of GMP</div></div>' +
+            '<div class="forecast-kpi ' + varColor + '"><div class="fk-label">Variance (Act vs Est)</div><div class="fk-value">' + (totalActualMonths > 0 ? varLabel : 'No actuals yet') + '</div><div class="fk-sub">' + totalActualMonths + ' of ' + FORECAST_DATA.length + ' months reported</div></div>' +
+            '<div class="forecast-kpi fk-blue"><div class="fk-label">Next Est. Draw</div><div class="fk-value">$' + (nextEst/1000).toFixed(0) + 'K</div><div class="fk-sub">' + nextMonth + ' (Pay App #' + (nextPayApp ? nextPayApp.payApp : '—') + ')</div></div>';
+    }
+
+    // ── Quarterly Table ──
+    var qBody = document.getElementById('forecastQuarterlyBody');
+    if (qBody) {
+        qBody.innerHTML = '';
+        var quarters = [
+            { name: 'Q2 2026', period: 'Mar – May 2026', indices: [0,1,2], priority: 'Moderate' },
+            { name: 'Q3 2026', period: 'Jun – Aug 2026', indices: [3,4,5], priority: 'CRITICAL — Peak Spend' },
+            { name: 'Q4 2026', period: 'Sep – Nov 2026', indices: [6,7,8], priority: 'High — Interior Work' },
+            { name: 'Q1 2027', period: 'Dec – Feb 2027', indices: [9,10,11], priority: 'Moderate — Wind Down' },
+            { name: 'Q2 2027', period: 'Mar – Apr 2027', indices: [12,13], priority: 'Low — Closeout' }
+        ];
+        var remainingBasis = GMP - BILLED_BEFORE_FORECAST;
+        quarters.forEach(function(q) {
+            var qEst = 0, qAct = 0, hasAny = false;
+            q.indices.forEach(function(i) { qEst += FORECAST_DATA[i].estimated; if (FORECAST_DATA[i].actual !== null) { qAct += FORECAST_DATA[i].actual; hasAny = true; } });
+            var qVar = hasAny ? qAct - qEst : null;
+            var varClass2 = qVar > 0 ? 'var-over' : qVar < 0 ? 'var-under' : '';
+            var priorityColor = q.priority.indexOf('CRITICAL') >= 0 ? 'color:var(--red);font-weight:700;' : q.priority.indexOf('High') >= 0 ? 'color:#e67e22;font-weight:600;' : 'color:var(--text-light);';
+            var qr = document.createElement('tr');
+            qr.innerHTML =
+                '<td style="font-weight:700;">' + q.name + '</td>' +
+                '<td>' + q.period + '</td>' +
+                '<td class="est-cell" style="text-align:right;">$' + qEst.toLocaleString() + '</td>' +
+                '<td class="act-cell" style="text-align:right;">' + (hasAny ? '$' + qAct.toLocaleString() : '—') + '</td>' +
+                '<td class="var-cell ' + varClass2 + '" style="text-align:right;">' + (qVar !== null ? (qVar >= 0 ? '+' : '-') + '$' + Math.abs(qVar).toLocaleString() : '—') + '</td>' +
+                '<td style="text-align:center;">' + (qEst/remainingBasis*100).toFixed(1) + '%</td>' +
+                '<td style="' + priorityColor + '">' + q.priority + '</td>';
+            qBody.appendChild(qr);
+        });
+    }
+
+    // ── Charts ──
+    renderForecastCharts();
+}
+
+function renderForecastCharts() {
+    var labels = FORECAST_DATA.map(function(r) { return r.month.replace(' 20','\''); });
+    var estValues = FORECAST_DATA.map(function(r) { return r.estimated; });
+    var actValues = FORECAST_DATA.map(function(r) { return r.actual; });
+
+    // Bar chart
+    var barCtx = document.getElementById('forecastBarChart');
+    if (barCtx) {
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Estimated', data: estValues, backgroundColor: 'rgba(52,152,219,0.4)', borderColor: '#3498db', borderWidth: 1, borderRadius: 4 },
+                    { label: 'Actual', data: actValues, backgroundColor: 'rgba(46,139,87,0.6)', borderColor: '#2e8b57', borderWidth: 1, borderRadius: 4 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return '$' + (v/1000000).toFixed(1) + 'M'; } } } },
+                plugins: { tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': $' + (ctx.raw ? ctx.raw.toLocaleString() : '—'); } } } }
+            }
+        });
+    }
+
+    // Cumulative S-curve
+    var cumCtx = document.getElementById('forecastCumChart');
+    if (cumCtx) {
+        var cumEst = [BILLED_BEFORE_FORECAST];
+        var cumAct = [BILLED_BEFORE_FORECAST];
+        var hasActualData = false;
+        FORECAST_DATA.forEach(function(r, i) {
+            cumEst.push(cumEst[i] + r.estimated);
+            if (r.actual !== null) { cumAct.push(cumAct[i] + r.actual); hasActualData = true; }
+            else { cumAct.push(null); }
+        });
+        var cumLabels = ['Pre-Forecast'].concat(labels);
+        var datasets = [
+            { label: 'Estimated Cumulative', data: cumEst, borderColor: '#3498db', backgroundColor: 'rgba(52,152,219,0.1)', fill: true, tension: 0.3, pointRadius: 3 }
+        ];
+        if (hasActualData) {
+            datasets.push({ label: 'Actual Cumulative', data: cumAct, borderColor: '#2e8b57', backgroundColor: 'rgba(46,139,87,0.1)', fill: false, tension: 0.3, pointRadius: 4, borderWidth: 3 });
+        }
+        // GMP line
+        datasets.push({ label: 'GMP ($24.15M)', data: cumLabels.map(function() { return GMP; }), borderColor: 'rgba(192,57,43,0.4)', borderDash: [8,4], borderWidth: 2, pointRadius: 0, fill: false });
+
+        new Chart(cumCtx, {
+            type: 'line',
+            data: { labels: cumLabels, datasets: datasets },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, max: GMP * 1.05, ticks: { callback: function(v) { return '$' + (v/1000000).toFixed(0) + 'M'; } } } },
+                plugins: { tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': $' + (ctx.raw ? ctx.raw.toLocaleString() : '—'); } } } }
+            }
+        });
+    }
+}
+
+// Render forecast on load
+renderForecast();
+
+</script>
+
+</body>
+</html>
