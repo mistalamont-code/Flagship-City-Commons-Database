@@ -2802,11 +2802,13 @@ function generateWithJsPDF(now, todayStr, timeStr, weekStr, dateSlug) {
     section('Key Milestones');
     var miles = [
         ['Caisson Package', 'Jul-Oct 2025', 95, 'Complete'],
-        ['Grade Beams & Foundations', 'Oct 2025-Feb 2026', 90, 'In Progress'],
-        ['Marlena Demo & Reconstruction', 'Oct 2025-ongoing', 55, 'In Progress'],
-        ['Structural Steel (Fab & Erection)', 'Jan-May 2026', 15, 'Critical Path'],
-        ['Electrical Underground', 'Jan 2026-ongoing', 10, 'In Progress'],
-        ['Steel Erection', 'Mar-May 2026', 0, 'Upcoming'],
+        ['Grade Beams & Foundations', 'Oct 2025-Mar 2026', 92, 'In Progress'],
+        ['Marlena Demo & Reconstruction', 'Oct 2025-ongoing', 60, 'In Progress'],
+        ['Structural Steel (Fab & Erection)', 'Jan-May 2026', 20, 'Critical Path'],
+        ['Electrical Underground', 'Jan 2026-ongoing', 15, 'In Progress'],
+        ['Plumbing Underground', 'Feb 2026-ongoing', 10, 'In Progress'],
+        ['Tower Crane', 'Feb-Apr 2026', 90, 'On Track'],
+        ['Steel Erection', 'Mar-May 2026', 5, 'Behind'],
         ['Concrete Slabs on Deck', 'May-Jul 2026', 0, 'Upcoming'],
         ['Building Envelope', 'Jun-Nov 2026', 0, 'Upcoming'],
         ['MEP & Interior Finishes', 'Sep 2026-Mar 2027', 0, 'Upcoming'],
@@ -2840,7 +2842,7 @@ function generateWithJsPDF(now, todayStr, timeStr, weekStr, dateSlug) {
             doc.setFontSize(7); doc.setTextColor(26, 58, 92);
             doc.text('--', MG + 320, y + 11);
         }
-        var stc = ms[3] === 'Critical Path' ? RED : ms[3] === 'Complete' ? GREEN : ms[3] === 'Target' ? NAVY : ms[3] === 'In Progress' ? GOLD : GRAY;
+        var stc = ms[3] === 'Critical Path' ? RED : ms[3] === 'Behind' ? RED : ms[3] === 'Complete' ? GREEN : ms[3] === 'On Track' ? GREEN : ms[3] === 'Target' ? NAVY : ms[3] === 'In Progress' ? GOLD : GRAY;
         doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5);
         var stw = doc.getTextWidth(ms[3]) + 10;
         doc.setFillColor(stc[0], stc[1], stc[2]);
@@ -2850,6 +2852,116 @@ function generateWithJsPDF(now, todayStr, timeStr, weekStr, dateSlug) {
         y += 16;
     }
     y += 8;
+
+    // VISUAL SCHEDULE TIMELINE (Gantt)
+    checkPage(180);
+    section('Construction Schedule — March 2026');
+    var ganttTasks = [
+        {name:'Caisson Package', s:0, e:3, pct:95, color:GREEN},
+        {name:'Sitework & Excavation', s:0, e:4, pct:75, color:NAVY},
+        {name:'Grade Beams & Foundations', s:1, e:5, pct:92, color:NAVY},
+        {name:'Marlena Demo & Recon', s:1, e:8, pct:60, color:NAVY},
+        {name:'Steel Shop Drawings & Fab', s:3, e:6, pct:20, color:RED},
+        {name:'Electrical Underground', s:3, e:7, pct:15, color:NAVY},
+        {name:'Plumbing Underground', s:4, e:7, pct:10, color:NAVY},
+        {name:'Tower Crane', s:4, e:6, pct:90, color:GREEN},
+        {name:'Steel Erection', s:5, e:8, pct:5, color:RED},
+        {name:'Concrete Slabs on Deck', s:7, e:9, pct:0, color:GRAY},
+        {name:'Building Envelope', s:8, e:13, pct:0, color:GRAY},
+        {name:'MEP Rough-In', s:11, e:17, pct:0, color:GRAY},
+        {name:'Interior Finishes', s:13, e:17, pct:0, color:GRAY},
+        {name:'Substantial Completion', s:18, e:18, pct:-1, color:NAVY}
+    ];
+    var gMonths = ['Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
+    var gMC = gMonths.length; // 19
+    var gLabelW = 130; // label column width
+    var gChartX = MG + gLabelW;
+    var gChartW = CW - gLabelW;
+    var gColW = gChartW / gMC;
+    var gRowH = 10;
+    var gCurMonth = 5; // Mar 2026 = index 5
+
+    // Month headers
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(5.5);
+    for (var gm = 0; gm < gMC; gm++) {
+        var mx = gChartX + gm * gColW;
+        // Highlight current month
+        if (gm === gCurMonth) {
+            doc.setFillColor(26, 58, 92); doc.setDrawColor(26, 58, 92);
+            doc.rect(mx, y - 2, gColW, 10, 'F');
+            doc.setTextColor(255, 255, 255);
+        } else {
+            doc.setTextColor(127, 140, 141);
+        }
+        doc.text(gMonths[gm], mx + gColW / 2, y + 5, {align: 'center'});
+    }
+    doc.setTextColor(44, 62, 80);
+    y += 12;
+
+    // Task rows
+    for (var gt = 0; gt < ganttTasks.length; gt++) {
+        var gk = ganttTasks[gt];
+
+        // Alternating row bg
+        if (gt % 2 === 0) { doc.setFillColor(248, 249, 252); doc.rect(MG, y, CW, gRowH, 'F'); }
+
+        // Task name
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(6); doc.setTextColor(44, 62, 80);
+        doc.text(gk.name, MG + 4, y + 7);
+
+        // Planned bar (gray)
+        var bStart = gChartX + gk.s * gColW;
+        var bWidth = (gk.e - gk.s + 1) * gColW;
+        doc.setFillColor(213, 221, 232);
+        safeRect(bStart, y + 2, bWidth, 6, 3, 3, 'F');
+
+        // Progress fill
+        if (gk.pct > 0) {
+            var pWidth = bWidth * gk.pct / 100;
+            doc.setFillColor(gk.color[0], gk.color[1], gk.color[2]);
+            safeRect(bStart, y + 2, Math.max(pWidth, 4), 6, 3, 3, 'F');
+        }
+
+        // Milestone diamond for Substantial Completion
+        if (gk.pct === -1) {
+            var dmX = gChartX + gk.s * gColW + gColW / 2;
+            doc.setFillColor(26, 58, 92);
+            doc.circle(dmX, y + 5, 3, 'F');
+            doc.setFontSize(4); doc.setTextColor(255,255,255);
+            doc.text('SC', dmX, y + 6.2, {align:'center'});
+        }
+
+        y += gRowH;
+    }
+
+    // Today line (red vertical)
+    var todayX = gChartX + (gCurMonth + 10/31) * gColW;
+    var ganttTopY = y - (ganttTasks.length * gRowH);
+    doc.setDrawColor(192, 57, 43); doc.setLineWidth(0.5);
+    doc.line(todayX, ganttTopY, todayX, y);
+    doc.setFontSize(5); doc.setTextColor(192, 57, 43);
+    doc.text('TODAY', todayX, ganttTopY - 2, {align:'center'});
+    doc.setTextColor(44, 62, 80); doc.setDrawColor(0, 0, 0); doc.setLineWidth(0.2);
+
+    // Legend
+    y += 6;
+    doc.setFontSize(5.5); doc.setTextColor(127, 140, 141);
+    var legItems = [
+        {label:'Planned', clr:[213,221,232]},
+        {label:'In Progress', clr:NAVY},
+        {label:'On Track', clr:GREEN},
+        {label:'Critical Path', clr:RED},
+        {label:'Upcoming', clr:GRAY}
+    ];
+    var legX = MG + 6;
+    for (var li = 0; li < legItems.length; li++) {
+        var leg = legItems[li];
+        doc.setFillColor(leg.clr[0], leg.clr[1], leg.clr[2]);
+        doc.rect(legX, y - 3, 10, 5, 'F');
+        doc.text(leg.label, legX + 13, y + 0.5);
+        legX += doc.getTextWidth(leg.label) + 20;
+    }
+    y += 12;
 
     // ITEMS REQUIRING ATTENTION
     checkPage(100);
@@ -2934,6 +3046,18 @@ function generatePrintBriefing(todayStr, timeStr, weekStr, dateSlug) {
     html.push('.footer{background:#1a3a5c;color:#fff;padding:8px 32px;font-size:8px;text-align:center;margin-top:20px}');
     html.push('.print-btn{display:block;margin:16px auto;padding:12px 32px;background:#1a3a5c;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer}');
     html.push('.print-btn:hover{background:#2c5f8a}');
+    html.push('.gantt-wrap{margin:8px 0 12px;overflow-x:auto}');
+    html.push('.gantt-tbl{width:100%;border-collapse:collapse;font-size:8px;table-layout:fixed}');
+    html.push('.gantt-tbl th{background:#1a3a5c;color:#fff;padding:3px 2px;text-align:center;font-size:7px;font-weight:600;border:1px solid #1a3a5c}');
+    html.push('.gantt-tbl th.gantt-label{text-align:left;width:140px;min-width:140px}');
+    html.push('.gantt-tbl td{padding:3px 1px;border:1px solid #e0e4e8;height:14px;position:relative}');
+    html.push('.gantt-tbl td.gantt-name{font-size:8px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:140px;min-width:140px;padding-left:4px}');
+    html.push('.gantt-bar{position:absolute;top:2px;bottom:2px;border-radius:3px;opacity:.85}');
+    html.push('.gantt-bar-plan{background:#dfe6ed}');
+    html.push('.gantt-bar-fill{border-radius:3px}');
+    html.push('.gantt-today{position:absolute;top:0;bottom:0;width:2px;background:#c0392b;z-index:5}');
+    html.push('.gantt-legend{display:flex;gap:14px;margin:6px 0;font-size:8px;align-items:center}');
+    html.push('.gantt-leg-box{display:inline-block;width:12px;height:8px;border-radius:2px;margin-right:3px;vertical-align:middle}');
     html.push('</style></head><body>');
 
     // Print button
@@ -3026,11 +3150,13 @@ function generatePrintBriefing(todayStr, timeStr, weekStr, dateSlug) {
     html.push('<table><tr><th>Milestone</th><th>Timeline</th><th>Progress</th><th>Status</th></tr>');
     var miles = [
         ['Caisson Package', 'Jul-Oct 2025', 95, 'Complete', 'green'],
-        ['Grade Beams & Foundations', 'Oct 2025-Feb 2026', 90, 'In Progress', 'gold'],
-        ['Marlena Demo & Reconstruction', 'Oct 2025-ongoing', 55, 'In Progress', 'gold'],
-        ['Structural Steel (Fab & Erection)', 'Jan-May 2026', 15, 'Critical Path', 'red'],
-        ['Electrical Underground', 'Jan 2026-ongoing', 10, 'In Progress', 'gray'],
-        ['Steel Erection', 'Mar-May 2026', 0, 'Upcoming', 'gray'],
+        ['Grade Beams & Foundations', 'Oct 2025-Mar 2026', 92, 'In Progress', 'gold'],
+        ['Marlena Demo & Reconstruction', 'Oct 2025-ongoing', 60, 'In Progress', 'gold'],
+        ['Structural Steel (Fab & Erection)', 'Jan-May 2026', 20, 'Critical Path', 'red'],
+        ['Electrical Underground', 'Jan 2026-ongoing', 15, 'In Progress', 'gold'],
+        ['Plumbing Underground', 'Feb 2026-ongoing', 10, 'In Progress', 'gold'],
+        ['Tower Crane', 'Feb-Apr 2026', 90, 'On Track', 'green'],
+        ['Steel Erection', 'Mar-May 2026', 5, 'Behind', 'red'],
         ['Concrete Slabs on Deck', 'May-Jul 2026', 0, 'Upcoming', 'gray'],
         ['Building Envelope', 'Jun-Nov 2026', 0, 'Upcoming', 'gray'],
         ['MEP & Interior Finishes', 'Sep 2026-Mar 2027', 0, 'Upcoming', 'gray'],
@@ -3048,6 +3174,82 @@ function generatePrintBriefing(todayStr, timeStr, weekStr, dateSlug) {
         html.push('<tr><td>' + m[0] + '</td><td>' + m[1] + '</td><td>' + barHtml + '</td><td><span class="pill pill-' + m[4] + '">' + m[3] + '</span></td></tr>');
     }
     html.push('</table>');
+
+    // Visual Schedule Timeline (Gantt)
+    html.push('<div class="section">CONSTRUCTION SCHEDULE — MARCH 2026</div>');
+    var ganttMonths = ['Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26','May 26','Jun 26','Jul 26','Aug 26','Sep 26','Oct 26','Nov 26','Dec 26','Jan 27','Feb 27','Mar 27','Apr 27'];
+    var ganttTasks = [
+        {n:'Caisson Package',s:0,e:3,p:95,c:'#2e8b57'},
+        {n:'Sitework & Excavation',s:0,e:4,p:75,c:'#1a3a5c'},
+        {n:'Grade Beams & Foundations',s:1,e:5,p:92,c:'#1a3a5c'},
+        {n:'Marlena Demo & Recon.',s:1,e:8,p:60,c:'#d4a843'},
+        {n:'Steel Shop Dwgs & Fab',s:3,e:6,p:20,c:'#c0392b'},
+        {n:'Electrical Underground',s:3,e:7,p:15,c:'#1a3a5c'},
+        {n:'Plumbing Underground',s:4,e:7,p:10,c:'#1a3a5c'},
+        {n:'Tower Crane',s:4,e:6,p:90,c:'#2e8b57'},
+        {n:'Structural Steel Erection',s:5,e:8,p:5,c:'#c0392b'},
+        {n:'Concrete Slabs on Deck',s:7,e:9,p:0,c:'#7f8c8d'},
+        {n:'Building Envelope',s:8,e:13,p:0,c:'#7f8c8d'},
+        {n:'MEP Rough-In',s:11,e:17,p:0,c:'#7f8c8d'},
+        {n:'Interior Finishes',s:13,e:17,p:0,c:'#7f8c8d'},
+        {n:'Elevator Install',s:10,e:15,p:0,c:'#7f8c8d'},
+        {n:'Substantial Completion',s:18,e:18,p:-1,c:'#1a3a5c'}
+    ];
+    var todayCol = 5; // Mar 2026 is index 5
+    var totalCols = ganttMonths.length;
+    html.push('<div class="gantt-wrap"><table class="gantt-tbl">');
+    html.push('<tr><th class="gantt-label">Task</th>');
+    for (var gi = 0; gi < totalCols; gi++) {
+        var thStyle = gi === todayCol ? ';background:#c0392b' : '';
+        html.push('<th style="font-size:6.5px' + thStyle + '">' + ganttMonths[gi] + '</th>');
+    }
+    html.push('</tr>');
+    for (var gt = 0; gt < ganttTasks.length; gt++) {
+        var t = ganttTasks[gt];
+        html.push('<tr><td class="gantt-name">' + t.n + '</td>');
+        for (var gc = 0; gc < totalCols; gc++) {
+            var cellHtml = '';
+            if (gc >= t.s && gc <= t.e) {
+                var isStart = gc === t.s;
+                var isEnd = gc === t.e;
+                var barL = isStart ? '10%' : '0';
+                var barR = isEnd ? '10%' : '0';
+                if (t.p === -1) {
+                    // Milestone diamond
+                    cellHtml = '<div style="text-align:center;font-size:10px;line-height:14px;color:#1a3a5c">&#9670;</div>';
+                } else {
+                    var spanW = t.e - t.s + 1;
+                    var fillPct = t.p;
+                    // Scale fill across the bar for this cell
+                    var cellStart = (gc - t.s) / spanW * 100;
+                    var cellEnd = (gc - t.s + 1) / spanW * 100;
+                    var localFill = 0;
+                    if (fillPct >= cellEnd) { localFill = 100; }
+                    else if (fillPct > cellStart) { localFill = (fillPct - cellStart) / (cellEnd - cellStart) * 100; }
+                    cellHtml = '<div class="gantt-bar gantt-bar-plan" style="left:' + barL + ';right:' + barR + '">';
+                    if (localFill > 0) {
+                        cellHtml += '<div class="gantt-bar-fill" style="width:' + localFill.toFixed(0) + '%;height:100%;background:' + t.c + '"></div>';
+                    }
+                    cellHtml += '</div>';
+                }
+            }
+            if (gc === todayCol && t.p !== -1) {
+                cellHtml += '<div class="gantt-today" style="left:33%"></div>';
+            }
+            html.push('<td style="position:relative">' + cellHtml + '</td>');
+        }
+        html.push('</tr>');
+    }
+    html.push('</table></div>');
+    html.push('<div class="gantt-legend">');
+    html.push('<span><span class="gantt-leg-box" style="background:#dfe6ed"></span>Planned</span>');
+    html.push('<span><span class="gantt-leg-box" style="background:#1a3a5c"></span>Active</span>');
+    html.push('<span><span class="gantt-leg-box" style="background:#2e8b57"></span>Complete / On Track</span>');
+    html.push('<span><span class="gantt-leg-box" style="background:#c0392b"></span>Critical Path</span>');
+    html.push('<span><span class="gantt-leg-box" style="background:#7f8c8d"></span>Upcoming</span>');
+    html.push('<span><span class="gantt-leg-box" style="background:#c0392b;width:2px;height:10px"></span>Today</span>');
+    html.push('<span style="font-size:10px">&#9670; Milestone</span>');
+    html.push('</div>');
 
     // Items Requiring Attention
     html.push('<div class="section">Items Requiring Attention</div>');
