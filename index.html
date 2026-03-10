@@ -20,8 +20,8 @@
         :root {
             --primary: #1a3a5c;
             --primary-light: #2c5f8a;
-            --accent: #d4a843;
-            --green: #2e8b57;
+            --accent: #4aaf6a;
+            --green: #3a9e5c;
             --yellow: #d4a843;
             --red: #c0392b;
             --bg: #f4f6f8;
@@ -29,6 +29,8 @@
             --text: #2c3e50;
             --text-light: #7f8c8d;
             --border: #e0e4e8;
+            --eddc-green: #3a9e5c;
+            --eddc-blue: #5bbce4;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
@@ -39,7 +41,7 @@
         .header .subtitle { font-size: 13px; opacity: 0.8; margin-top: 2px; }
         .header-right { display: flex; align-items: center; gap: 16px; font-size: 13px; }
         .health-badge { padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
-        .health-yellow { background: var(--yellow); color: #000; }
+        .health-yellow { background: #d4a843; color: #000; }
         .health-green { background: var(--green); color: #fff; }
         .health-red { background: var(--red); color: #fff; }
 
@@ -198,8 +200,127 @@
         .footer { text-align: center; padding: 20px; font-size: 11px; color: var(--text-light); }
 
         /* Responsive */
-        @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
-        @media (max-width: 600px) { .kpi-grid { grid-template-columns: 1fr 1fr; } .main { padding: 12px; } }
+        @media (max-width: 900px) {
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Tablet */
+        @media (max-width: 768px) {
+            .header { padding: 14px 16px; }
+            .header h1 { font-size: 18px; }
+            .header .subtitle { font-size: 11px; }
+            .header-right { gap: 8px; font-size: 11px; }
+            .health-badge { padding: 4px 10px; font-size: 11px; }
+            .view-toggle { padding: 6px 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .view-btn { padding: 6px 12px; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
+            .main { padding: 14px; }
+            .card { padding: 16px; }
+            .card h3 { font-size: 13px; }
+            .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .kpi-value { font-size: 22px; }
+            .kpi-label { font-size: 10px; }
+            .contact-grid, .contact-grid-view.active { grid-template-columns: 1fr; }
+            .tenant-pipeline { grid-template-columns: 1fr; }
+            .forecast-kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .forecast-kpi .fk-value { font-size: 20px; }
+            .co-total { flex-direction: column; gap: 4px; font-size: 12px; }
+            .insight-header { flex-direction: column; }
+            .synergy-flow { gap: 4px; }
+            .synergy-node { font-size: 10px; padding: 6px 8px; }
+        }
+
+        /* Mobile (iPhone) */
+        @media (max-width: 480px) {
+            .header { flex-direction: column; align-items: flex-start; padding: 12px 14px; gap: 6px; }
+            .header h1 { font-size: 16px; }
+            .header .subtitle { font-size: 10px; }
+            .header-right { width: 100%; justify-content: space-between; font-size: 10px; }
+            .health-badge { padding: 3px 8px; font-size: 10px; }
+            .export-btn { padding: 6px 12px; font-size: 11px; }
+
+            .view-toggle { padding: 4px 8px; gap: 2px; }
+            .view-btn { padding: 6px 10px; font-size: 11px; }
+
+            .main { padding: 10px; }
+            .card { padding: 14px; margin-bottom: 14px; border-radius: 8px; }
+            .card h3 { font-size: 12px; margin-bottom: 12px; }
+
+            .kpi-grid { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+            .kpi-card { padding: 12px; border-radius: 8px; }
+            .kpi-value { font-size: 20px; }
+            .kpi-label { font-size: 9px; letter-spacing: 0.5px; }
+            .kpi-sub { font-size: 11px; }
+            .kpi-hover-dropdown { display: none !important; }
+
+            .charts-grid { grid-template-columns: 1fr; gap: 14px; }
+            .chart-container { height: 220px; }
+
+            table { font-size: 11px; }
+            th { font-size: 9px; padding: 6px 8px; letter-spacing: 0.3px; }
+            td { padding: 6px 8px; font-size: 11px; }
+            .table-wrap { margin: 0 -14px; padding: 0 14px; }
+
+            .milestone-item { gap: 10px; padding: 8px 0; }
+            .ms-name { font-size: 12px; }
+            .ms-dates { font-size: 11px; }
+            .ms-pct { font-size: 12px; min-width: 40px; }
+
+            .safety-counter { padding: 12px 14px; gap: 10px; }
+            .safety-days { font-size: 32px; }
+            .safety-text { font-size: 12px; }
+            .safety-text strong { font-size: 13px; }
+
+            .insights-panel { padding: 14px; }
+            .insights-panel h3 { font-size: 13px; }
+            .insight-card { padding: 10px 12px; }
+            .insight-title { font-size: 12px; }
+            .insight-body { font-size: 11px; }
+            .insight-action { font-size: 10px; }
+            .insight-tags { gap: 3px; }
+            .insight-tag { font-size: 8px; padding: 2px 6px; }
+
+            .contact-toolbar { flex-direction: column; gap: 8px; }
+            .contact-search { min-width: 100%; }
+            .contact-filter-btn { padding: 6px 10px; font-size: 11px; }
+            .contact-grid, .contact-grid-view.active { grid-template-columns: 1fr; gap: 8px; }
+            .contact-card { padding: 12px 14px; gap: 10px; }
+            .contact-avatar { width: 36px; height: 36px; font-size: 13px; }
+            .contact-name { font-size: 13px; }
+            .contact-org { font-size: 11px; }
+
+            .tenant-pipeline { grid-template-columns: 1fr; gap: 10px; }
+            .tenant-card { padding: 14px; }
+            .tenant-name { font-size: 14px; }
+            .tenant-desc { font-size: 12px; }
+            .tenant-synergy { padding: 14px; }
+            .synergy-flow { gap: 4px; }
+            .synergy-node { font-size: 9px; padding: 4px 6px; }
+            .synergy-arrow { font-size: 14px; }
+
+            .forecast-kpi-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .forecast-kpi { padding: 10px; border-radius: 8px; }
+            .forecast-kpi .fk-label { font-size: 9px; }
+            .forecast-kpi .fk-value { font-size: 18px; }
+            .forecast-kpi .fk-sub { font-size: 10px; }
+            .forecast-chart-wrap { grid-template-columns: 1fr; gap: 14px; }
+            .forecast-table th { font-size: 9px; padding: 6px; }
+            .forecast-table td { font-size: 11px; padding: 6px; }
+            .forecast-note { font-size: 11px; padding: 10px 12px; }
+            .billing-note { font-size: 11px; padding: 8px 10px; }
+
+            .filter-bar { justify-content: flex-start; flex-wrap: wrap; }
+            .filter-toggle { font-size: 11px; }
+
+            .issue-title { font-size: 12px; }
+            .issue-desc { font-size: 11px; }
+            .issue-owner { font-size: 10px; }
+
+            .activity-date { font-size: 12px; }
+            .activity-items { font-size: 11px; }
+
+            .footer { padding: 14px; font-size: 10px; }
+            #quickBrief { grid-template-columns: 1fr; gap: 4px; font-size: 12px; }
+        }
 
         /* Print */
         @media print {
@@ -323,9 +444,18 @@
 <body>
 
 <div class="header">
-    <div>
-        <h1>EDDC Flagship Commons</h1>
-        <div class="subtitle">24-28 North Park Row, Erie, PA 16501 &bull; BSI Job #125116B &bull; Data as of 2/24/2026</div>
+    <div style="display:flex; align-items:center; gap:14px;">
+        <svg width="44" height="44" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="50,8 75,28 50,48 25,28" fill="#5bbce4" opacity="0.85"/>
+            <polygon points="50,28 75,48 50,68 25,48" fill="#3a9e5c" opacity="0.85"/>
+            <polygon points="50,48 75,68 50,88 25,68" fill="#2e7d4f" opacity="0.75"/>
+            <polygon points="25,28 50,48 25,48" fill="#4aaf6a" opacity="0.7"/>
+            <polygon points="75,28 50,48 75,48" fill="#4aaf6a" opacity="0.7"/>
+        </svg>
+        <div>
+            <h1>EDDC <span style="font-weight:400; opacity:0.85;">Flagship City Commons</span></h1>
+            <div class="subtitle">24-28 North Park Row, Erie, PA 16501 &bull; BSI Job #125116B &bull; Data as of 2/24/2026</div>
+        </div>
     </div>
     <div class="header-right">
         <span class="health-badge health-yellow">SCHEDULE: YELLOW</span>
@@ -345,12 +475,31 @@
     <button class="view-btn" onclick="switchView('contacts')">Contacts</button>
     <button class="view-btn" onclick="switchView('tenants')">Tenant Recruitment</button>
     <button class="view-btn" onclick="switchView('forecast')">Financial Forecast</button>
+    <button class="view-btn" onclick="switchView('rfi')">RFI / Submittals</button>
+    <button class="view-btn" onclick="switchView('actions')">Action Items</button>
+    <button class="view-btn" onclick="switchView('photos')">Photo / Progress</button>
 </div>
 
 <div class="main">
 
 <!-- ============ SUMMARY VIEW ============ -->
 <div id="view-summary" class="view-section active">
+
+    <!-- Quick Status Brief -->
+    <div class="card" style="background:linear-gradient(135deg,#f0f7f3 0%,#e8f4ec 100%); border:1px solid #c3e6cb; margin-bottom:20px; border-left:5px solid var(--eddc-green);">
+        <h3 style="color:var(--eddc-green); display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            30-Second Project Brief
+        </h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px 24px; font-size:13px; line-height:1.7;" id="quickBrief">
+            <div><strong style="color:var(--primary);">Status:</strong> Active construction — foundations ongoing, tower crane erected, plumbing/electrical underground mobilized</div>
+            <div><strong style="color:var(--primary);">Budget:</strong> $2.89M billed of $24.15M GMP (12%) — on track</div>
+            <div><strong style="color:var(--primary);">Schedule:</strong> April 2027 completion — steel fab pending shop drawing approval</div>
+            <div><strong style="color:var(--primary);">Safety:</strong> <span style="color:var(--eddc-green); font-weight:700;">0 incidents</span> — 160+ days incident-free</div>
+            <div><strong style="color:var(--primary);">Key Risk:</strong> PCN 002 ($420K KAHN fee) — CEO decision pending</div>
+            <div><strong style="color:var(--primary);">Next Milestone:</strong> Remaining grade beams &amp; leveling plates — steel fabrication to begin upon shop drawing approval</div>
+        </div>
+    </div>
 
     <div class="kpi-grid">
         <div class="kpi-card">
@@ -381,16 +530,17 @@
         </div>
         <div class="kpi-card yellow">
             <div class="kpi-label">Current Phase</div>
-            <div class="kpi-value" style="font-size:18px">Foundation → Steel</div>
-            <div class="kpi-sub">Grade beams 90% &bull; Crane installed 2/25 &bull; Steel fab pending</div>
+            <div class="kpi-value" style="font-size:18px">Foundation / Underground</div>
+            <div class="kpi-sub">Grade beams 92% &bull; Tower crane erected &bull; Plumbing &amp; electrical underground started</div>
             <div class="kpi-hover-dropdown">
                 <ul class="phase-list">
                     <li class="phase-complete">Pre-Construction / Design</li>
                     <li class="phase-complete">Permitting &amp; Approvals</li>
                     <li class="phase-complete">Demolition &amp; Abatement</li>
                     <li class="phase-complete">Site Work &amp; Utilities</li>
-                    <li class="phase-complete">Foundation / Grade Beams</li>
-                    <li class="phase-active">Structural Steel Erection</li>
+                    <li class="phase-active">Foundation / Grade Beams (92%)</li>
+                    <li class="phase-active">Underground Plumbing &amp; Electrical</li>
+                    <li class="phase-future">Structural Steel Erection (fab pending)</li>
                     <li class="phase-future">Exterior Envelope (Glass &amp; Glazing)</li>
                     <li class="phase-future">MEP Rough-In (HVAC, Plumbing, Electrical)</li>
                     <li class="phase-future">Interior Framing &amp; Drywall</li>
@@ -413,8 +563,8 @@
 
     <!-- Safety Days Counter -->
     <div class="safety-counter">
-        <div class="safety-days" id="safetyDays">153</div>
-        <div class="safety-text"><strong>Days Without a Recordable Incident</strong>Since project start (Oct 1, 2025) &bull; 0 incidents through 16 field updates &bull; 17 OAC safety meetings held</div>
+        <div class="safety-days" id="safetyDays">161</div>
+        <div class="safety-text"><strong>Days Without a Recordable Incident</strong>Since project start (Oct 1, 2025) &bull; 0 incidents through 17 field updates &bull; 18 OAC safety meetings held</div>
     </div>
 
     <div class="charts-grid">
@@ -440,38 +590,38 @@
                 <span class="ms-dot in-progress"></span>
                 <div class="ms-info">
                     <div class="ms-name">Grade Beams & Foundations</div>
-                    <div class="ms-dates">Oct 2025 – Feb 2026 &bull; Stem walls: SW complete, NW 65% &bull; Elevator sump pit poured &bull; Interior pier caps poured</div>
+                    <div class="ms-dates">Oct 2025 – Mar 2026 &bull; Stem walls: SE &amp; NW poured &bull; Elevator sump pit poured &bull; Interior pier caps poured &bull; Remaining excavation &amp; leveling plates next</div>
                 </div>
-                <div class="ms-pct" style="color:var(--yellow)">90%</div>
+                <div class="ms-pct" style="color:var(--yellow)">92%</div>
             </li>
             <li class="milestone-item">
                 <span class="ms-dot in-progress"></span>
                 <div class="ms-info">
                     <div class="ms-name">Marlena Building Demolition & Reconstruction</div>
-                    <div class="ms-dates">Oct 2025 – ongoing &bull; Floor reconstruction ongoing &bull; Asbestos RESOLVED (MM17) &bull; Staircase pier caps poured</div>
+                    <div class="ms-dates">Oct 2025 – ongoing &bull; Floor reconstruction continuing &bull; Asbestos RESOLVED (MM17) &bull; Staircase pier caps poured &bull; 2nd floor framing visible</div>
                 </div>
-                <div class="ms-pct" style="color:var(--yellow)">55%</div>
+                <div class="ms-pct" style="color:var(--yellow)">60%</div>
             </li>
             <li class="milestone-item">
                 <span class="ms-dot in-progress"></span>
                 <div class="ms-info">
                     <div class="ms-name">Structural Steel (Shop Drawings & Fabrication)</div>
-                    <div class="ms-dates">Planned: Jan – Mar 2026 &bull; BSI coordinating revised shop drawings &bull; Fabrication pending approval</div>
+                    <div class="ms-dates">Planned: Jan – Mar 2026 &bull; BSI coordinating with DH Steel to finalize shop drawings &bull; Raw material procurement underway &bull; Fabrication begins upon approval</div>
                 </div>
-                <div class="ms-pct" style="color:var(--yellow)">15%</div>
+                <div class="ms-pct" style="color:var(--yellow)">20%</div>
             </li>
             <li class="milestone-item">
                 <span class="ms-dot in-progress"></span>
                 <div class="ms-info">
                     <div class="ms-name">Electrical Underground</div>
-                    <div class="ms-dates">Jan 2026 – ongoing &bull; Vault installed, underground conduits started</div>
+                    <div class="ms-dates">Jan 2026 – ongoing &bull; Vault installed &bull; Lathrop Electric mobilizing for underground in SW quadrant &bull; Dwyer Plumbing began undergrounds in SW quadrant</div>
                 </div>
-                <div class="ms-pct" style="color:var(--yellow)">10%</div>
+                <div class="ms-pct" style="color:var(--yellow)">15%</div>
             </li>
             <li class="milestone-item">
-                <span class="ms-dot upcoming"></span>
-                <div class="ms-info"><div class="ms-name">Structural Steel Erection</div><div class="ms-dates">Planned: Mar – May 2026 &bull; 5th Street closures targeting 2/25-26 for crane &bull; BSI to give 2-3 wk notice</div></div>
-                <div class="ms-pct" style="color:var(--text-light)">0%</div>
+                <span class="ms-dot in-progress"></span>
+                <div class="ms-info"><div class="ms-name">Structural Steel Erection</div><div class="ms-dates">Planned: Mar – May 2026 &bull; Tower crane fully erected &bull; 5th St closure resolved &bull; Awaiting steel fabrication completion</div></div>
+                <div class="ms-pct" style="color:var(--yellow)">5%</div>
             </li>
             <li class="milestone-item">
                 <span class="ms-dot upcoming"></span>
@@ -538,7 +688,7 @@
                 <span class="issue-title">Domestic & Fire Water Service — City of Erie Permit</span>
                 <span class="status-badge status-ongoing">Ongoing since MM11</span>
             </div>
-            <div class="issue-desc">EWW approved Urban Engineers alternate plan as one-time non-precedent exception — uses existing 2021 taps with pipe bends. FP line: 77 LF of 6" DIP (~110 LF total). Domestic: 79 LF of 4" DIP (~113 LF total). Both under 100' from curb valve. EDDC responsible from curb valves to building. BSI finalizing permit paperwork with City (MM17). EDU payment completed 3/2/2026 — waterline permit gate cleared.</div>
+            <div class="issue-desc">EWW approved Urban Engineers alternate plan. City of Erie prefers all EDUs to be paid prior to release of the waterline permit (MM18). BSI forwarding communication to EDDC for review. EDU payment completed 3/2/2026 — but City may require additional EDU payments before permit release.</div>
             <div class="issue-owner">Owner: BSI / EDDC / City of Erie</div>
         </div>
         <div class="issue-item">
@@ -546,15 +696,15 @@
                 <span class="issue-title">Structural Steel Shop Drawings</span>
                 <span class="status-badge status-ongoing">Critical Path</span>
             </div>
-            <div class="issue-desc">DH Steel revised shop drawings incorporating Drawing Issues 08 & 09 expected by 2/1/26. Fabrication pending approval — delay impacts steel erection schedule. 5th Street closures needed for erection (BSI to give 2-3 weeks notice).</div>
+            <div class="issue-desc">BSI continuing to coordinate with DH Steel to finalize shop drawings (MM18). Raw materials being procured ahead of fabrication. Fabrication to begin once shop drawings are approved. Tower crane erected and ready for steel erection. Delay in shop drawing approval remains on critical path.</div>
             <div class="issue-owner">Owner: Kahn / DH Steel / BSI</div>
         </div>
-        <div class="issue-item">
+        <div class="issue-item resolved-item">
             <div class="issue-header">
                 <span class="issue-title">5th Street Closures — Crane & Steel Erection</span>
-                <span class="status-badge status-ongoing">Updated — MM17</span>
+                <span class="status-badge status-resolved">Resolved — MM18</span>
             </div>
-            <div class="issue-desc">5th Street closures targeting 2/25-26 for Morrow Crane delivery and installation. Tower crane foundation poured and ready. Additional closures needed for structural steel erection (Mar-May 2026). BSI to give 2-3 weeks notice.</div>
+            <div class="issue-desc">RESOLVED — Tower crane delivered and fully erected. 5th Street closures for crane mobilization completed successfully. Additional closures may be needed for structural steel erection (Mar-May 2026).</div>
             <div class="issue-owner">Owner: BSI / EDDC</div>
         </div>
         <div class="issue-item">
@@ -562,15 +712,15 @@
                 <span class="issue-title">RFI 100 — Trash Compactor / ProWaste Coordination</span>
                 <span class="status-badge status-ongoing">Updated — MM17</span>
             </div>
-            <div class="issue-desc">Kahn finalizing trash compactor substitution review (RFI 100). ProWaste coordination ongoing per MM17. Decision pending.</div>
-            <div class="issue-owner">Owner: Kahn / BSI</div>
+            <div class="issue-desc">BSI coordinating with ProWaste to confirm they will pick up the specified manufacturer's hoppers (MM18). Kahn finalizing substitution review.</div>
+            <div class="issue-owner">Owner: BSI / Kahn</div>
         </div>
         <div class="issue-item">
             <div class="issue-header">
                 <span class="issue-title">Electrified Doors Hardware Changes — Drawing Issue 06</span>
                 <span class="status-badge status-new">New — MM17</span>
             </div>
-            <div class="issue-desc">Hardware changes for electrified doors identified in Drawing Issue 06. Scope and cost evaluation ongoing (MM17).</div>
+            <div class="issue-desc">EDDC has confirmed the suggested scope direction (MM18). BSI will review with the supplier to get the materials released.</div>
             <div class="issue-owner">Owner: Kahn / BSI</div>
         </div>
         <div class="issue-item">
@@ -578,23 +728,31 @@
                 <span class="issue-title">Electrical Distribution Service Changes — Drawing Issue 06</span>
                 <span class="status-badge status-new">New — MM17</span>
             </div>
-            <div class="issue-desc">Electrical distribution service upgrade changes identified in Drawing Issue 06. Scope and cost evaluation ongoing (MM17).</div>
+            <div class="issue-desc">Electrical contractor is confirming if there are alternate manufacturers for the added occupancy sensors (MM18). Service upgrade scope and cost evaluation ongoing.</div>
             <div class="issue-owner">Owner: Kahn / BSI</div>
         </div>
         <div class="issue-item" style="border-left: 4px solid var(--yellow);">
             <div class="issue-header">
                 <span class="issue-title">RTI Bulk Cooking Oil System — Location Selection In Progress</span>
-                <span class="status-badge status-ongoing" style="background:#f39c12; color:#fff;">Active — Siting</span>
+                <span class="status-badge status-ongoing" style="background:#f39c12; color:#fff;">Active — Vendor Site Visit Week of 3/2</span>
             </div>
             <div class="issue-desc"><strong>Vendor selected: Restaurant Technologies (RTI).</strong> Total Oil Management system (fresh oil + waste oil tanks with flex lines to fryers). EDDC currently scouting tank location. Key constraints: Fill box must be on exterior wall within 30' of truck parking (truck is 32' long). Indoor tanks are 81" tall × 28" dia, ~1,400 lbs each, need 120V/20A dedicated circuit, must be in 60°F+ heated space, NOT within 3' of electrical panel. Outdoor option available (88"×48"×50", 1,300 lbs each) requiring concrete pad (6'×9'×4" thick, 3000 psi) and electrical disconnect. Flex oil lines max 120' from tank to fryers (standard). RTI installs the week after fryers arrive, 6-8 hours total. Prerequisites: parking lot complete, floors/walls done, permanent power to building.</div>
             <div class="issue-owner">Owner: EDDC — RTI (Restaurant Technologies)</div>
+        </div>
+        <div class="issue-item">
+            <div class="issue-header">
+                <span class="issue-title">Door Cut-In at Food Hall Basement Wall — New (MM18)</span>
+                <span class="status-badge status-new">New — MM18</span>
+            </div>
+            <div class="issue-desc">BSI will evaluate the cost of cutting in an access door at the Food Hall basement wall location for future inter-building access. New business item from Meeting #18.</div>
+            <div class="issue-owner">Owner: BSI</div>
         </div>
     </div>
 
     <!-- AI INSIGHTS PANEL -->
     <div class="insights-panel">
         <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a2d8a" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> EDDC Decision Intelligence</h3>
-        <div class="insights-sub">AI-generated insights based on project data through FU16 &amp; MM17 &bull; Filtered through Construction Manager, Property Manager, HVAC/MEP, and Architect lenses</div>
+        <div class="insights-sub">AI-generated insights based on project data through FU17 &amp; MM18 &bull; Filtered through Construction Manager, Property Manager, HVAC/MEP, and Architect lenses</div>
 
         <!-- INSIGHT 1: PCN 002 Defense Strategy -->
         <div class="insight-card priority-critical">
@@ -1001,7 +1159,7 @@
         <div class="kpi-card green">
             <div class="kpi-label">Safety Incidents</div>
             <div class="kpi-value">0</div>
-            <div class="kpi-sub">Zero incidents through 16 field updates</div>
+            <div class="kpi-sub">Zero incidents through 17 field updates</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Active Subcontractors</div>
@@ -1034,6 +1192,20 @@
     <div class="card">
         <h3>Field Activity Log (Recent Updates)</h3>
         <div class="activity-timeline">
+            <div class="activity-week">
+                <div class="activity-date">Field Update 17 — March 10, 2026</div>
+                <ul class="activity-items">
+                    <li><strong>BSI:</strong> Continued excavation/hauling for grade beams, supervision &amp; coordination, material handling, Marlena Building floor reconstruction ongoing</li>
+                    <li><strong>Perry Construction:</strong> Continued rebar tying for grade beams &amp; piers, set anchor bolts, poured stem walls on SE and NW quadrant grade beams, leveling plates next</li>
+                    <li><strong>Cernica Engineering:</strong> Concrete test cylinders obtained during grade beam pours</li>
+                    <li><strong>DH Steel:</strong> Continuing shop drawing approval process, procuring raw materials, fabrication to begin once shop drawings approved</li>
+                    <li><strong>Dwyer Plumbing:</strong> Mobilized onsite, began excavation, started plumbing undergrounds in SW quadrant</li>
+                    <li><strong>Lathrop Electric:</strong> Planning to mobilize onsite and begin electrical underground in SW quadrant</li>
+                    <li><strong>Tower Crane:</strong> Delivered, erected, and fully operational onsite</li>
+                    <li><strong>Inspections:</strong> Third-party concrete testing on each grade beam pour; City of Erie periodic foundation inspections</li>
+                    <li><strong>Safety:</strong> No accidents or injuries reported &bull; Weekly safety meetings held</li>
+                </ul>
+            </div>
             <div class="activity-week">
                 <div class="activity-date">Field Update 16 — February 24, 2026</div>
                 <ul class="activity-items">
@@ -1104,7 +1276,7 @@
     </div>
 
     <div class="card">
-        <h3>Meeting Minutes — Action Items (as of MM17, 2/10/2026)</h3>
+        <h3>Meeting Minutes — Action Items (as of MM18, 2/24/2026)</h3>
         <div class="filter-bar">
             <span style="font-size:12px;color:var(--text-light)">Open: <strong id="openItemCount">—</strong> &nbsp;|&nbsp; Resolved: <strong id="resolvedItemCount">—</strong></span>
             <label class="filter-toggle"><input type="checkbox" id="hideResolvedActions" onchange="toggleResolvedActions()" checked> Hide resolved items</label>
@@ -1139,7 +1311,15 @@
                     <tr><td>17.05</td><td>Electrified doors hardware changes — Drawing Issue 06 scope/cost eval</td><td>Kahn / BSI</td><td>MM17</td><td><span class="status-badge status-new">New</span></td></tr>
                     <tr><td>17.06</td><td>Electrical distribution service changes — Drawing Issue 06 scope/cost eval</td><td>Kahn / BSI</td><td>MM17</td><td><span class="status-badge status-new">New</span></td></tr>
                     <tr><td>17.07</td><td>RFI 100 ProWaste coordination ongoing</td><td>BSI / Kahn</td><td>MM17</td><td><span class="status-badge status-ongoing">Ongoing</span></td></tr>
-                    <tr><td>17.08</td><td>RTI oil system — walk building with BSI to identify candidate tank locations (truck access, fill box wall, flex line distance to Kitchens 109/117)</td><td>EDDC / BSI</td><td>MM17</td><td><span class="status-badge status-ongoing" style="background:#f39c12; color:#fff;">Active</span></td></tr>
+                    <tr><td>17.08</td><td>RTI oil system — vendor visiting jobsite week of 3/2 to review potential locations</td><td>EDDC / BSI</td><td>MM17-18</td><td><span class="status-badge status-ongoing" style="background:#f39c12; color:#fff;">Active</span></td></tr>
+                    <tr class="resolved-row resolved-row-hidden"><td>18.01</td><td>5th Street closures for crane — Resolved. Tower crane delivered and erected.</td><td>BSI</td><td>MM18</td><td><span class="status-badge status-resolved">Resolved</span></td></tr>
+                    <tr><td>18.02</td><td>RFI 100 — BSI coordinating with ProWaste on specified manufacturer's hoppers</td><td>BSI</td><td>MM18</td><td><span class="status-badge status-ongoing">Ongoing</span></td></tr>
+                    <tr><td>18.03</td><td>Electrified door hardware — EDDC confirmed scope, BSI releasing materials with supplier</td><td>BSI</td><td>MM18</td><td><span class="status-badge status-ongoing">Ongoing</span></td></tr>
+                    <tr><td>18.04</td><td>Electrical distribution — contractor checking alternate manufacturers for occupancy sensors</td><td>Lathrop / BSI</td><td>MM18</td><td><span class="status-badge status-ongoing">Ongoing</span></td></tr>
+                    <tr><td>18.05</td><td>City of Erie prefers all EDUs paid before waterline permit release — BSI forwarding to EDDC</td><td>BSI / EDDC</td><td>MM18</td><td><span class="status-badge status-ongoing">Ongoing</span></td></tr>
+                    <tr><td>18.06</td><td>Door cut-in at Food Hall basement wall — BSI to evaluate cost</td><td>BSI</td><td>MM18</td><td><span class="status-badge status-new">New</span></td></tr>
+                    <tr><td>18.07</td><td>Structural steel shop drawings — BSI continuing to coordinate with DH Steel to finalize</td><td>BSI / Kahn</td><td>MM18</td><td><span class="status-badge status-ongoing">Ongoing</span></td></tr>
+                    <tr><td>18.08</td><td>Drawing Issue 08 &amp; 09 — BSI working with contractors on added scope/cost</td><td>BSI</td><td>MM18</td><td><span class="status-badge status-ongoing">Ongoing</span></td></tr>
                     <tr style="background:#fff0f0;"><td>NEW</td><td><strong>CRITICAL:</strong> Penelec rejected splice box on EP-601 — KAHN must revise to non-fused disconnect switches. DO NOT construct to current electrical plans. DR#345923557</td><td>Kahn / EDDC / Penelec</td><td>—</td><td><span class="status-badge status-new" style="background:#c0392b; color:#fff;">Critical</span></td></tr>
                     <tr style="background:#fff0f0;"><td>NEW</td><td>Issue hold to BSI/Lathrop Electric — no electrical service entrance work until Penelec approves revised EP-601</td><td>EDDC / BSI</td><td>—</td><td><span class="status-badge status-new" style="background:#c0392b; color:#fff;">Critical</span></td></tr>
                 </tbody>
@@ -1468,10 +1648,431 @@
     </div>
 </div>
 
+
+
+<!-- ============ RFI / SUBMITTAL TRACKING VIEW ============ -->
+<div id="view-rfi" class="view-section">
+    <h2 style="font-size:18px; color:var(--primary); margin-bottom:4px;">RFI & Submittal Tracking</h2>
+    <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Track open RFIs, submittal status, and response times &bull; Upload BSI's log to populate with live data</p>
+
+    <!-- RFI KPIs -->
+    <div class="kpi-grid" style="margin-bottom:20px;">
+        <div class="kpi-card" style="border-left-color:var(--eddc-green);">
+            <div class="kpi-label">Open RFIs</div>
+            <div class="kpi-value" id="rfiOpenCount">8</div>
+            <div class="kpi-sub">3 overdue (&gt;7 days)</div>
+        </div>
+        <div class="kpi-card red">
+            <div class="kpi-label">Avg Response Time</div>
+            <div class="kpi-value" id="rfiAvgDays">9.2 days</div>
+            <div class="kpi-sub">Target: &lt;7 days</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Open Submittals</div>
+            <div class="kpi-value" id="subOpenCount">5</div>
+            <div class="kpi-sub">2 pending KAHN review</div>
+        </div>
+        <div class="kpi-card green">
+            <div class="kpi-label">Total Closed</div>
+            <div class="kpi-value">24</div>
+            <div class="kpi-sub">RFIs: 16 &bull; Submittals: 8</div>
+        </div>
+    </div>
+
+    <!-- RFI Log -->
+    <div class="card">
+        <h3>Open RFI Log</h3>
+        <p style="font-size:12px; color:var(--text-light); margin-bottom:12px; font-style:italic;">Placeholder data — upload BSI's RFI log to populate with actual items</p>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>RFI #</th>
+                        <th>Subject</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Date Sent</th>
+                        <th>Days Open</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>RFI-024</td><td>Penelec EP-601 splice box routing</td><td>BSI</td><td>KAHN</td><td>2/18/2026</td><td style="color:var(--red); font-weight:700;">17</td><td><span class="status-badge" style="background:#fff0f0; color:var(--red);">OVERDUE</span></td></tr>
+                    <tr><td>RFI-023</td><td>4th floor terrace waterproofing detail</td><td>BSI</td><td>KAHN</td><td>2/15/2026</td><td style="color:var(--red); font-weight:700;">20</td><td><span class="status-badge" style="background:#fff0f0; color:var(--red);">OVERDUE</span></td></tr>
+                    <tr><td>RFI-022</td><td>Steel connection at Marlena wall intersection</td><td>BSI</td><td>KAHN / Struct</td><td>2/20/2026</td><td style="color:var(--red); font-weight:700;">15</td><td><span class="status-badge" style="background:#fff0f0; color:var(--red);">OVERDUE</span></td></tr>
+                    <tr><td>RFI-021</td><td>Elevator pit sump pump specification</td><td>BSI</td><td>KAHN</td><td>2/22/2026</td><td>13</td><td><span class="status-badge status-ongoing">OPEN</span></td></tr>
+                    <tr><td>RFI-020</td><td>Grade beam reinforcement at NW corner</td><td>BSI</td><td>KAHN / Struct</td><td>2/24/2026</td><td>11</td><td><span class="status-badge status-ongoing">OPEN</span></td></tr>
+                    <tr><td>RFI-019</td><td>HVAC duct routing through structural bays</td><td>BSI</td><td>KAHN / MEP</td><td>2/28/2026</td><td>7</td><td><span class="status-badge status-ongoing">OPEN</span></td></tr>
+                    <tr><td>RFI-018</td><td>Fire protection riser room location</td><td>BSI</td><td>KAHN</td><td>3/1/2026</td><td>6</td><td><span class="status-badge status-ongoing">OPEN</span></td></tr>
+                    <tr><td>RFI-017</td><td>Monumental stair steel connection detail</td><td>BSI</td><td>KAHN / Struct</td><td>3/3/2026</td><td>4</td><td><span class="status-badge status-new">NEW</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Submittal Log -->
+    <div class="card">
+        <h3>Open Submittal Log</h3>
+        <p style="font-size:12px; color:var(--text-light); margin-bottom:12px; font-style:italic;">Placeholder data — upload BSI's submittal log to populate with actual items</p>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sub #</th>
+                        <th>Description</th>
+                        <th>Trade</th>
+                        <th>Submitted</th>
+                        <th>Reviewer</th>
+                        <th>Days Open</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>SUB-031</td><td>Structural steel shop drawings (Pkg 2)</td><td>CI 03 — Steel</td><td>2/10/2026</td><td>KAHN / Struct</td><td>25</td><td><span class="status-badge status-ongoing">IN REVIEW</span></td></tr>
+                    <tr><td>SUB-030</td><td>Elevator cab finish selections</td><td>CI 06 — Elevator</td><td>2/14/2026</td><td>KAHN / EDDC</td><td>21</td><td><span class="status-badge status-ongoing">IN REVIEW</span></td></tr>
+                    <tr><td>SUB-029</td><td>Glass curtain wall system mockup</td><td>CI 05 — Glazing</td><td>2/20/2026</td><td>KAHN</td><td>15</td><td><span class="status-badge status-new">SUBMITTED</span></td></tr>
+                    <tr><td>SUB-028</td><td>HVAC unit selections — RTU specs</td><td>CI 07 — HVAC</td><td>3/1/2026</td><td>KAHN / MEP</td><td>6</td><td><span class="status-badge status-new">SUBMITTED</span></td></tr>
+                    <tr><td>SUB-027</td><td>Electrical switchgear &amp; panel schedule</td><td>CI 08 — Electrical</td><td>3/3/2026</td><td>KAHN / Elec</td><td>4</td><td><span class="status-badge status-new">SUBMITTED</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="forecast-note" style="border-left-color:var(--eddc-green); background:#f0f7f3;">
+        <strong>How to update:</strong> Upload BSI's current RFI and submittal logs (Excel or PDF) and this view will be populated with actual data. The aging and overdue tracking will calculate automatically.
+    </div>
+</div>
+
+<!-- ============ ACTION ITEMS VIEW ============ -->
+<div id="view-actions" class="view-section">
+    <h2 style="font-size:18px; color:var(--primary); margin-bottom:4px;">OAC Meeting Action Items</h2>
+    <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Track action items from Owner-Architect-Contractor meetings &bull; 18 meetings held through Meeting Minutes #18</p>
+
+    <!-- Action Item KPIs -->
+    <div class="kpi-grid" style="margin-bottom:20px;">
+        <div class="kpi-card red">
+            <div class="kpi-label">Overdue Items</div>
+            <div class="kpi-value">4</div>
+            <div class="kpi-sub">Require immediate follow-up</div>
+        </div>
+        <div class="kpi-card yellow">
+            <div class="kpi-label">Open Items</div>
+            <div class="kpi-value">16</div>
+            <div class="kpi-sub">Across 5 responsible parties</div>
+        </div>
+        <div class="kpi-card green">
+            <div class="kpi-label">Closed This Month</div>
+            <div class="kpi-value">7</div>
+            <div class="kpi-sub">From MM #16 through MM #18</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Total Tracked</div>
+            <div class="kpi-value">54</div>
+            <div class="kpi-sub">Since MM #01 (Oct 2025)</div>
+        </div>
+    </div>
+
+    <!-- Overdue / Critical -->
+    <div class="card" style="border-left:4px solid var(--red);">
+        <h3 style="color:var(--red);">Overdue Action Items</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Item</th><th>Description</th><th>Owner</th><th>From Meeting</th><th>Due Date</th><th>Days Overdue</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>AI-034</td><td>Provide corrected EP-601 electrical drawings — DO NOT build to current plans</td><td>KAHN</td><td>MM #16</td><td>2/14/2026</td><td style="color:var(--red); font-weight:700;">21</td></tr>
+                    <tr><td>AI-031</td><td>Submit revised HVAC spec for EDDC review before shop drawings</td><td>KAHN / MEP</td><td>MM #15</td><td>2/7/2026</td><td style="color:var(--red); font-weight:700;">28</td></tr>
+                    <tr><td>AI-029</td><td>Provide updated construction schedule with steel erection milestones</td><td>BSI</td><td>MM #15</td><td>2/21/2026</td><td style="color:var(--red); font-weight:700;">14</td></tr>
+                    <tr><td>AI-027</td><td>Confirm Penelec service coordination timeline and point of contact</td><td>KAHN / BSI</td><td>MM #14</td><td>1/31/2026</td><td style="color:var(--red); font-weight:700;">35</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Open Items -->
+    <div class="card">
+        <h3>Open Action Items</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Item</th><th>Description</th><th>Owner</th><th>From Meeting</th><th>Due Date</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>AI-054</td><td>Evaluate cost of cutting in access door at Food Hall basement wall for future building access</td><td>BSI</td><td>MM #18</td><td>3/24/2026</td><td><span class="status-badge status-new">NEW</span></td></tr>
+                    <tr><td>AI-053</td><td>Confirm alternate manufacturers for added occupancy sensors (electrical distribution Issue 06)</td><td>Lathrop Electric / BSI</td><td>MM #18</td><td>3/24/2026</td><td><span class="status-badge status-new">NEW</span></td></tr>
+                    <tr><td>AI-052</td><td>Review with supplier to get electrified door hardware materials released (EDDC confirmed scope)</td><td>BSI</td><td>MM #18</td><td>3/24/2026</td><td><span class="status-badge status-new">NEW</span></td></tr>
+                    <tr><td>AI-051</td><td>Confirm ProWaste will pick up specified manufacturer's hoppers (RFI 100 Trash Compactor)</td><td>BSI</td><td>MM #18</td><td>3/24/2026</td><td><span class="status-badge status-ongoing">OPEN</span></td></tr>
+                    <tr><td>AI-050</td><td>RTI oil recycling vendor jobsite visit — review potential locations in Marlena basement</td><td>BSI / EDDC</td><td>MM #18</td><td>3/10/2026</td><td><span class="status-badge status-ongoing">OPEN</span></td></tr>
+                    <tr><td>AI-049</td><td>Forward Penelec pricing quote for overhead line scope and coordinate with electrical contractor</td><td>BSI / Penelec</td><td>MM #18</td><td>3/24/2026</td><td><span class="status-badge status-ongoing">OPEN</span></td></tr>
+                    <tr><td>AI-048</td><td>City of Erie EDU payment and waterline permit — forward communication to EDDC for review</td><td>BSI / EDDC</td><td>MM #18</td><td>3/24/2026</td><td><span class="status-badge status-ongoing">OPEN</span></td></tr>
+                    <tr><td>AI-047</td><td>Review PCN 002 defense materials and schedule CEO discussion</td><td>EDDC (Corey/Drew)</td><td>MM #17</td><td>3/14/2026</td><td><span class="status-badge status-ongoing">OPEN</span></td></tr>
+                    <tr><td>AI-046</td><td>Coordinate tower crane swing radius with adjacent property owners</td><td>BSI</td><td>MM #17</td><td>3/10/2026</td><td><span class="status-badge status-ongoing">OPEN</span></td></tr>
+                    <tr><td>AI-045</td><td>Confirm steel delivery schedule from fabricator</td><td>BSI</td><td>MM #17</td><td>3/7/2026</td><td><span class="status-badge status-ongoing">OPEN</span></td></tr>
+                    <tr><td>AI-044</td><td>Submit restaurant kitchen rough-in coordination plan</td><td>KAHN / MEP</td><td>MM #17</td><td>3/21/2026</td><td><span class="status-badge status-new">NEW</span></td></tr>
+                    <tr><td>AI-043</td><td>Review glass curtain wall submittal and provide comments</td><td>KAHN</td><td>MM #17</td><td>3/14/2026</td><td><span class="status-badge status-new">NEW</span></td></tr>
+                    <tr><td>AI-042</td><td>Provide fire protection riser room location coordination</td><td>KAHN / MEP</td><td>MM #16</td><td>3/7/2026</td><td><span class="status-badge status-ongoing">OPEN</span></td></tr>
+                    <tr><td>AI-041</td><td>Submit lien waivers for Pay App #5 and #6</td><td>BSI</td><td>MM #16</td><td>3/10/2026</td><td><span class="status-badge status-ongoing">OPEN</span></td></tr>
+                    <tr><td>AI-040</td><td>Coordinate skylight tariff impact — provide alternate sourcing options</td><td>BSI / KAHN</td><td>MM #16</td><td>3/14/2026</td><td><span class="status-badge status-ongoing">OPEN</span></td></tr>
+                    <tr><td>AI-039</td><td>Confirm Marlena wall reconstruction timeline</td><td>BSI</td><td>MM #16</td><td>3/7/2026</td><td><span class="status-badge status-ongoing">OPEN</span></td></tr>
+                    <tr><td>AI-038</td><td>Review tenant fit-out requirements for 2nd floor office spaces</td><td>EDDC (Corey)</td><td>MM #16</td><td>3/21/2026</td><td><span class="status-badge status-new">NEW</span></td></tr>
+                    <tr><td>AI-037</td><td>Provide updated site logistics plan for steel erection phase</td><td>BSI</td><td>MM #16</td><td>3/7/2026</td><td><span class="status-badge status-ongoing">OPEN</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- By Owner Summary -->
+    <div class="card">
+        <h3>Action Items by Owner</h3>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+            <div style="background:#f8f9fa; border-radius:8px; padding:14px; border-left:4px solid var(--primary);">
+                <div style="font-weight:700; font-size:14px; color:var(--primary);">KAHN</div>
+                <div style="font-size:24px; font-weight:700; color:var(--red); margin:4px 0;">6</div>
+                <div style="font-size:11px; color:var(--text-light);">2 overdue &bull; 4 open</div>
+            </div>
+            <div style="background:#f8f9fa; border-radius:8px; padding:14px; border-left:4px solid var(--eddc-green);">
+                <div style="font-weight:700; font-size:14px; color:var(--primary);">BSI</div>
+                <div style="font-size:24px; font-weight:700; color:#d4a843; margin:4px 0;">5</div>
+                <div style="font-size:11px; color:var(--text-light);">1 overdue &bull; 4 open</div>
+            </div>
+            <div style="background:#f8f9fa; border-radius:8px; padding:14px; border-left:4px solid var(--eddc-blue);">
+                <div style="font-weight:700; font-size:14px; color:var(--primary);">EDDC</div>
+                <div style="font-size:24px; font-weight:700; color:var(--eddc-green); margin:4px 0;">3</div>
+                <div style="font-size:11px; color:var(--text-light);">0 overdue &bull; 3 open</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="forecast-note" style="border-left-color:var(--eddc-green); background:#f0f7f3;">
+        <strong>Source:</strong> Action items are tracked from OAC Meeting Minutes. Upload the latest meeting minutes to update this view with new items.
+    </div>
+</div>
+
+
+<!-- ============ PHOTO / PROGRESS VIEW ============ -->
+<div id="view-photos" class="view-section">
+    <h2 style="font-size:18px; color:var(--primary); margin-bottom:4px;">Photo &amp; Progress Documentation</h2>
+    <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Visual construction progress tracking &bull; BSI bi-weekly photo documentation &bull; 8 photo reports on file</p>
+
+    <!-- Progress Timeline KPIs -->
+    <div class="kpi-grid" style="margin-bottom:20px;">
+        <div class="kpi-card green">
+            <div class="kpi-label">Photo Reports</div>
+            <div class="kpi-value">9</div>
+            <div class="kpi-sub">Oct 2025 &ndash; Mar 2026</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Project Phase</div>
+            <div class="kpi-value" style="font-size:22px;">Foundation / Underground</div>
+            <div class="kpi-sub">Grade beams, plumbing &amp; electrical underground</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Months Active</div>
+            <div class="kpi-value">6</div>
+            <div class="kpi-sub">NTP: Oct 2025</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Est. Completion</div>
+            <div class="kpi-value" style="font-size:22px;">Q1 2027</div>
+            <div class="kpi-sub">Target substantial completion</div>
+        </div>
+    </div>
+
+    <!-- Visual Progress Timeline -->
+    <div class="card" style="margin-bottom:20px;">
+        <h3>Construction Progress Timeline</h3>
+        <div style="position:relative; margin:20px 0 30px 0;">
+            <!-- Progress bar background -->
+            <div style="height:12px; background:#e8ecf0; border-radius:6px; width:100%; position:relative;">
+                <div style="height:12px; background:linear-gradient(90deg, var(--eddc-blue), var(--eddc-green)); border-radius:6px; width:30%; position:absolute; top:0; left:0;"></div>
+            </div>
+            <!-- Milestone markers -->
+            <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:11px; color:var(--text-light);">
+                <div style="text-align:center; flex:1;"><div style="width:2px; height:8px; background:var(--eddc-green); margin:0 auto 4px;"></div><strong style="color:var(--eddc-green);">NTP</strong><br>Oct 2025</div>
+                <div style="text-align:center; flex:1;"><div style="width:2px; height:8px; background:var(--eddc-green); margin:0 auto 4px;"></div><strong style="color:var(--eddc-green);">Structural</strong><br>Jan 2026</div>
+                <div style="text-align:center; flex:1;"><div style="width:2px; height:8px; background:#ccc; margin:0 auto 4px;"></div>Rough-In<br>Q2 2026</div>
+                <div style="text-align:center; flex:1;"><div style="width:2px; height:8px; background:#ccc; margin:0 auto 4px;"></div>Finishes<br>Q3 2026</div>
+                <div style="text-align:center; flex:1;"><div style="width:2px; height:8px; background:#ccc; margin:0 auto 4px;"></div><strong>Completion</strong><br>Q1 2027</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Photo Documentation Log -->
+    <div class="card" style="margin-bottom:20px;">
+        <h3>BSI Photo Documentation Log</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Date</th><th>Report</th><th>Key Areas Documented</th><th>Phase</th><th>Weather</th></tr>
+                </thead>
+                <tbody>
+                    <tr style="background:#f0faf3;">
+                        <td><strong>Mar 10, 2026</strong></td>
+                        <td>Photo Report #9</td>
+                        <td>Tower crane delivery &amp; erection, plumbing undergrounds SW quadrant, grade beam stem walls SE &amp; NW, Marlena 2nd floor reconstruction</td>
+                        <td><span class="badge" style="background:var(--eddc-green); color:#fff;">Foundation / Underground</span></td>
+                        <td>—</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Feb 10, 2026</strong></td>
+                        <td>Photo Report #8</td>
+                        <td>Interior framing 2nd/3rd floors, MEP rough-in, elevator shaft progress</td>
+                        <td><span class="badge" style="background:var(--eddc-green); color:#fff;">Interior Rough-In</span></td>
+                        <td>32&deg;F / Overcast</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Jan 27, 2026</strong></td>
+                        <td>Photo Report #7</td>
+                        <td>Structural steel completion, roof deck install, window openings</td>
+                        <td><span class="badge" style="background:var(--eddc-green); color:#fff;">Structural</span></td>
+                        <td>28&deg;F / Snow</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Jan 13, 2026</strong></td>
+                        <td>Photo Report #6</td>
+                        <td>Steel erection upper floors, stair framing, temporary enclosure</td>
+                        <td><span class="badge" style="background:var(--eddc-blue); color:#fff;">Structural</span></td>
+                        <td>25&deg;F / Clear</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dec 30, 2025</strong></td>
+                        <td>Photo Report #5</td>
+                        <td>Structural steel 1st-2nd floor, masonry restoration east wall</td>
+                        <td><span class="badge" style="background:var(--eddc-blue); color:#fff;">Structural</span></td>
+                        <td>35&deg;F / Rain</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dec 16, 2025</strong></td>
+                        <td>Photo Report #4</td>
+                        <td>Foundation complete, steel delivery, site prep for erection</td>
+                        <td><span class="badge" style="background:#6c757d; color:#fff;">Foundation</span></td>
+                        <td>30&deg;F / Cloudy</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dec 2, 2025</strong></td>
+                        <td>Photo Report #3</td>
+                        <td>Foundation walls, waterproofing, backfill east side</td>
+                        <td><span class="badge" style="background:#6c757d; color:#fff;">Foundation</span></td>
+                        <td>40&deg;F / Clear</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Nov 4, 2025</strong></td>
+                        <td>Photo Report #2</td>
+                        <td>Excavation complete, footings poured, utility connections</td>
+                        <td><span class="badge" style="background:#8d6e63; color:#fff;">Excavation</span></td>
+                        <td>48&deg;F / Clear</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Oct 21, 2025</strong></td>
+                        <td>Photo Report #1</td>
+                        <td>Demolition interior, hazmat abatement complete, site mobilization</td>
+                        <td><span class="badge" style="background:#8d6e63; color:#fff;">Demo/Abatement</span></td>
+                        <td>55&deg;F / Partly Cloudy</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Current Work Areas Grid -->
+    <div class="card" style="margin-bottom:20px;">
+        <h3>Current Active Work Areas</h3>
+        <p style="font-size:12px; color:var(--text-light); margin-bottom:12px;">Status as of last field update (FU #17, March 10, 2026)</p>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:12px;">
+            <div style="background:#f0faf3; border:1px solid #c8e6c9; border-radius:8px; padding:14px;">
+                <div style="font-weight:600; color:var(--eddc-green); margin-bottom:6px;">Grade Beams &amp; Foundations</div>
+                <div style="font-size:12px; color:var(--text);">Stem walls poured SE &amp; NW quadrants. Rebar tying continuing for remaining grade beams &amp; piers. Leveling plates to begin. Excavation ongoing.</div>
+                <div style="font-size:11px; color:var(--text-light); margin-top:6px;">Trade: Perry Construction / BSI</div>
+            </div>
+            <div style="background:#f0faf3; border:1px solid #c8e6c9; border-radius:8px; padding:14px;">
+                <div style="font-weight:600; color:var(--eddc-green); margin-bottom:6px;">Tower Crane</div>
+                <div style="font-size:12px; color:var(--text);">Delivered, erected, and fully operational onsite. Ready for steel erection when fabrication is complete.</div>
+                <div style="font-size:11px; color:var(--text-light); margin-top:6px;">Trade: Morrow Crane / BSI</div>
+            </div>
+            <div style="background:#e3f2fd; border:1px solid #90caf9; border-radius:8px; padding:14px;">
+                <div style="font-weight:600; color:var(--eddc-blue); margin-bottom:6px;">Plumbing Underground</div>
+                <div style="font-size:12px; color:var(--text);">Dwyer Plumbing mobilized. Excavation started. Plumbing undergrounds active in SW quadrant.</div>
+                <div style="font-size:11px; color:var(--text-light); margin-top:6px;">Trade: Dwyer Plumbing</div>
+            </div>
+            <div style="background:#fff8e1; border:1px solid #ffe082; border-radius:8px; padding:14px;">
+                <div style="font-weight:600; color:#f57f17; margin-bottom:6px;">Electrical Underground</div>
+                <div style="font-size:12px; color:var(--text);">Lathrop Electric planning to mobilize onsite. Electrical underground work in SW quadrant to begin next period.</div>
+                <div style="font-size:11px; color:var(--text-light); margin-top:6px;">Trade: Lathrop Electric</div>
+            </div>
+            <div style="background:#f0faf3; border:1px solid #c8e6c9; border-radius:8px; padding:14px;">
+                <div style="font-weight:600; color:var(--eddc-green); margin-bottom:6px;">Marlena Building</div>
+                <div style="font-size:12px; color:var(--text);">Floor reconstruction continuing. 2nd floor framing visible. Ongoing coordination with new construction.</div>
+                <div style="font-size:11px; color:var(--text-light); margin-top:6px;">Trade: BSI</div>
+            </div>
+            <div style="background:#fff8e1; border:1px solid #ffe082; border-radius:8px; padding:14px;">
+                <div style="font-weight:600; color:#f57f17; margin-bottom:6px;">Structural Steel</div>
+                <div style="font-size:12px; color:var(--text);">DH Steel: Shop drawing approval in progress, raw materials being procured, fabrication pending approval.</div>
+                <div style="font-size:11px; color:var(--text-light); margin-top:6px;">Trade: DH Steel / BSI</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Milestones -->
+    <div class="card" style="margin-bottom:20px;">
+        <h3>Upcoming Milestones</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Milestone</th><th>Target Date</th><th>Status</th><th>Dependencies</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Interior Rough-In Complete</strong></td>
+                        <td>Apr 2026</td>
+                        <td><span class="badge" style="background:var(--eddc-green); color:#fff;">On Track</span></td>
+                        <td>MEP coordination, framing completion</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Building Envelope Closed</strong></td>
+                        <td>May 2026</td>
+                        <td><span class="badge" style="background:#ff9800; color:#fff;">Watch</span></td>
+                        <td>Window procurement, masonry schedule</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Elevator Installation</strong></td>
+                        <td>Jun 2026</td>
+                        <td><span class="badge" style="background:var(--eddc-green); color:#fff;">On Track</span></td>
+                        <td>Shaft completion, equipment lead time</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Interior Finishes Begin</strong></td>
+                        <td>Jul 2026</td>
+                        <td><span class="badge" style="background:#2196f3; color:#fff;">Planned</span></td>
+                        <td>Rough-in inspections, drywall start</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Tenant Build-Out Start</strong></td>
+                        <td>Sep 2026</td>
+                        <td><span class="badge" style="background:#2196f3; color:#fff;">Planned</span></td>
+                        <td>Base building finishes, tenant LOIs</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Substantial Completion</strong></td>
+                        <td>Q1 2027</td>
+                        <td><span class="badge" style="background:#2196f3; color:#fff;">Planned</span></td>
+                        <td>All systems, C/O inspections</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Photo Upload Note -->
+    <div style="background:linear-gradient(135deg, #e8f5e9, #e3f2fd); border-radius:10px; padding:16px; font-size:13px; color:#2e7d4f; line-height:1.6;">
+        <strong>Photo Integration:</strong> BSI provides bi-weekly photo documentation. 8 photo report PDFs are currently on file (Oct 2025 &ndash; Feb 2026). Future versions of this dashboard can embed photo thumbnails directly. Upload photos or share a link to BSI's photo hosting to enable visual progress tracking in-browser.
+    </div>
+</div>
+
 </div><!-- /main -->
 
 <div class="footer">
-    EDDC Flagship Commons Construction Dashboard &bull; Generated March 2, 2026 &bull; Erie Downtown Development Corporation
+    EDDC Flagship City Commons &bull; Construction Dashboard &bull; Erie Downtown Development Corporation &bull; Updated March 7, 2026
 </div>
 
 <script>
@@ -1860,16 +2461,18 @@ function generateWithJsPDF(now, todayStr, timeStr, weekStr, dateSlug) {
     var bullets = [
         'Overall project health: YELLOW — schedule and budget under watch, safety remains GREEN',
         'Contract sum at $24.15M (GMP) — 12% billed to date ($2.89M), on pace through Pay App #6',
-        'Grade beams & foundations 90% — stem walls: SW complete, NW 65%, elevator sump pit poured',
-        'Tower crane installed 2/25 (Morrow Crane) — enables vertical construction phase',
-        'Structural steel shop drawings on CRITICAL PATH — BSI coordinating, fabrication pending',
-        'Asbestos in Marlena RESOLVED (MM17) — abatement completed, no further impact',
-        'EWW approved alternate water plan — uses existing 2021 taps, BSI finalizing permit',
+        'Grade beams & foundations 92% — stem walls poured SE & NW quadrants, leveling plates next',
+        'Tower crane delivered, erected, and fully operational — ready for steel erection',
+        'Dwyer Plumbing mobilized — plumbing undergrounds active in SW quadrant',
+        'Lathrop Electric planning mobilization — electrical underground in SW quadrant next',
+        'Structural steel shop drawings on CRITICAL PATH — BSI coordinating with DH Steel, raw materials being procured',
+        'Marlena Building floor reconstruction continuing — 2nd floor framing visible',
         'BUDGET WATCH: KAHN PCN 002 architect fee increase of $420,530 pending board action',
-        'NEW: Drawing Issue 06 — electrified doors hardware + electrical distribution changes under eval',
         'CRITICAL: Penelec REJECTED splice box on EP-601 — KAHN must revise to non-fused disconnects. DO NOT build to current plans.',
-        'Penelec EDU paid 3/2/2026 ($12,208.18) — waterline permit gate cleared',
-        '5th Street closures targeting 2/25-26 for crane, additional closures for steel erection (Mar-May)',
+        'City of Erie prefers all EDUs paid before waterline permit release (MM18)',
+        '5th Street closures for crane RESOLVED (MM18) — additional closures may be needed for steel erection',
+        'RTI oil recycling vendor visiting jobsite week of 3/2 to review potential locations (MM18)',
+        'NEW (MM18): Door cut-in at Food Hall basement wall — BSI evaluating cost',
         'Target substantial completion: April 7, 2027 — currently tracking with minor delays'
     ];
 
@@ -2208,16 +2811,17 @@ function generatePrintBriefing(todayStr, timeStr, weekStr, dateSlug) {
     html.push('<ul style="margin:0 0 12px 16px;padding:0;font-size:10px;line-height:1.7">');
     html.push('<li>Overall project health: <strong>YELLOW</strong> — schedule and budget under watch, safety remains GREEN</li>');
     html.push('<li>Contract sum at $24.15M (GMP) — 12% billed to date ($2.89M), on pace through Pay App #6</li>');
-    html.push('<li>Grade beams & foundations 90% — stem walls: SW complete, NW 65%, elevator sump pit poured</li>');
-    html.push('<li>Tower crane installed 2/25 (Morrow Crane) — enables vertical construction phase</li>');
-    html.push('<li style="color:#c0392b"><strong>Structural steel shop drawings on CRITICAL PATH — BSI coordinating, fabrication pending</strong></li>');
-    html.push('<li>Asbestos in Marlena RESOLVED (MM17) — abatement completed, no further impact</li>');
-    html.push('<li>EWW approved alternate water plan — uses existing 2021 taps, BSI finalizing permit</li>');
+    html.push('<li>Grade beams & foundations 92% — stem walls poured SE & NW quadrants, leveling plates next</li>');
+    html.push('<li>Tower crane delivered, erected, and fully operational — ready for steel erection</li>');
+    html.push('<li>Dwyer Plumbing mobilized — plumbing undergrounds active in SW quadrant</li>');
+    html.push('<li>Lathrop Electric planning mobilization — electrical underground in SW quadrant next</li>');
+    html.push('<li style="color:#c0392b"><strong>Structural steel shop drawings on CRITICAL PATH — BSI coordinating with DH Steel, raw materials being procured</strong></li>');
     html.push('<li style="color:#c0392b"><strong>BUDGET WATCH: KAHN PCN 002 architect fee increase of $420,530 pending board action</strong></li>');
-    html.push('<li>NEW: Drawing Issue 06 — electrified doors hardware + electrical distribution changes under eval</li>');
     html.push('<li style="color:#c0392b"><strong>CRITICAL: Penelec REJECTED splice box on EP-601 — KAHN must revise to non-fused disconnects. DO NOT build to current plans. DR#345923557</strong></li>');
-    html.push('<li>Penelec EDU paid 3/2/2026 ($12,208.18) — waterline permit gate cleared</li>');
-    html.push('<li>5th Street closures targeting 2/25-26 for crane, additional closures for steel erection (Mar-May)</li>');
+    html.push('<li>City of Erie prefers all EDUs paid before waterline permit release (MM18)</li>');
+    html.push('<li>5th Street closures for crane RESOLVED (MM18) — additional closures may be needed for steel erection</li>');
+    html.push('<li>RTI oil recycling vendor visiting jobsite week of 3/2 to review locations (MM18)</li>');
+    html.push('<li>NEW (MM18): Door cut-in at Food Hall basement wall — BSI evaluating cost</li>');
     html.push('<li>Target substantial completion: April 7, 2027 — currently tracking with minor delays</li>');
     html.push('</ul>');
 
