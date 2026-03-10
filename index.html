@@ -110,6 +110,49 @@
         .synergy-node.active { background: var(--primary); color: #fff; }
         .synergy-arrow { color: var(--primary-light); font-size: 18px; font-weight: 700; }
 
+        /* Schedule Gantt Chart */
+        .gantt-wrapper { overflow-x: auto; margin-top: 16px; }
+        .gantt-chart { min-width: 900px; }
+        .gantt-header { display: grid; grid-template-columns: 220px 1fr; border-bottom: 2px solid var(--primary); padding-bottom: 6px; margin-bottom: 2px; }
+        .gantt-header-label { font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .gantt-months { display: grid; grid-template-columns: repeat(var(--month-count), 1fr); }
+        .gantt-month { font-size: 10px; font-weight: 600; color: var(--text-light); text-align: center; padding: 2px 0; border-left: 1px solid #e8ecf2; }
+        .gantt-month.current { background: rgba(26,58,92,0.06); font-weight: 700; color: var(--primary); }
+        .gantt-row { display: grid; grid-template-columns: 220px 1fr; align-items: center; padding: 6px 0; border-bottom: 1px solid #f0f2f5; }
+        .gantt-row:hover { background: #f8f9fb; }
+        .gantt-task-name { font-size: 12px; font-weight: 600; color: var(--primary); padding-right: 12px; display: flex; align-items: center; gap: 8px; }
+        .gantt-task-pct { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 8px; background: #eef2f7; color: var(--text-light); white-space: nowrap; }
+        .gantt-task-pct.done { background: #e8f5e9; color: var(--green); }
+        .gantt-task-pct.active { background: #fff3e0; color: #e67e22; }
+        .gantt-bar-area { display: grid; grid-template-columns: repeat(var(--month-count), 1fr); position: relative; height: 24px; }
+        .gantt-bar-cell { border-left: 1px solid #f0f2f5; position: relative; }
+        .gantt-bar-cell.current { background: rgba(26,58,92,0.04); }
+        .gantt-bar { position: absolute; top: 4px; height: 16px; border-radius: 8px; min-width: 4px; }
+        .gantt-bar.planned { background: #d5dde8; }
+        .gantt-bar.progress { background: var(--primary); border-radius: 8px 0 0 8px; }
+        .gantt-bar.complete { background: var(--green); }
+        .gantt-bar.critical { background: var(--red); }
+        .gantt-today-line { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--red); z-index: 5; }
+        .gantt-today-label { position: absolute; top: -16px; font-size: 9px; font-weight: 700; color: var(--red); transform: translateX(-50%); white-space: nowrap; }
+        .gantt-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: 11px; color: var(--text-light); }
+        .gantt-legend-item { display: flex; align-items: center; gap: 5px; }
+        .gantt-legend-dot { width: 12px; height: 8px; border-radius: 4px; }
+        .schedule-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .schedule-kpi { background: var(--card-bg); border-radius: 10px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); text-align: center; }
+        .schedule-kpi .sk-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); font-weight: 600; }
+        .schedule-kpi .sk-value { font-size: 20px; font-weight: 700; color: var(--primary); margin: 4px 0; }
+        .schedule-kpi .sk-sub { font-size: 11px; color: var(--text-light); }
+        .march-focus { background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%); border: 1px solid #e0e8f5; border-radius: 10px; padding: 20px; margin-top: 20px; }
+        .march-focus h4 { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 12px; }
+        .march-task { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #e8ecf2; font-size: 12px; }
+        .march-task:last-child { border-bottom: none; }
+        .march-task-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .march-task-status.active { background: var(--green); }
+        .march-task-status.pending { background: var(--yellow); }
+        .march-task-status.critical { background: var(--red); }
+        .march-task-name { font-weight: 600; color: var(--primary); min-width: 200px; }
+        .march-task-detail { color: var(--text-light); }
+
         /* Financial Forecast */
         .forecast-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px; }
         .forecast-kpi { background: var(--card-bg); border-radius: 10px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); text-align: center; }
@@ -474,6 +517,7 @@
     <button class="view-btn" onclick="switchView('field')">Field Activity</button>
     <button class="view-btn" onclick="switchView('contacts')">Contacts</button>
     <button class="view-btn" onclick="switchView('tenants')">Tenant Recruitment</button>
+    <button class="view-btn" onclick="switchView('schedule')">Schedule</button>
     <button class="view-btn" onclick="switchView('forecast')">Financial Forecast</button>
     <button class="view-btn" onclick="switchView('rfi')">RFI / Submittals</button>
     <button class="view-btn" onclick="switchView('actions')">Action Items</button>
@@ -1441,6 +1485,107 @@
     </div>
 </div>
 
+<!-- ===== SCHEDULE VIEW ===== -->
+<div id="view-schedule" class="view-section">
+    <h2 style="font-size:18px; color:var(--primary); margin-bottom:4px;">Construction Schedule</h2>
+    <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Flagship City Commons &bull; Visual timeline of all major work packages &bull; Data as of 3/10/2026</p>
+
+    <!-- Schedule KPIs -->
+    <div class="schedule-kpi-grid">
+        <div class="schedule-kpi" style="border-bottom:3px solid var(--green);">
+            <div class="sk-label">Project Start</div>
+            <div class="sk-value">Oct 2025</div>
+            <div class="sk-sub">Caissons &amp; Site Work</div>
+        </div>
+        <div class="schedule-kpi" style="border-bottom:3px solid var(--primary);">
+            <div class="sk-label">Current Phase</div>
+            <div class="sk-value">Foundation</div>
+            <div class="sk-sub">Underground / Steel Prep</div>
+        </div>
+        <div class="schedule-kpi" style="border-bottom:3px solid var(--yellow);">
+            <div class="sk-label">Schedule Status</div>
+            <div class="sk-value">Behind</div>
+            <div class="sk-sub">Steel fab on critical path</div>
+        </div>
+        <div class="schedule-kpi" style="border-bottom:3px solid var(--primary);">
+            <div class="sk-label">Completion Target</div>
+            <div class="sk-value">Apr 2027</div>
+            <div class="sk-sub">Substantial Completion</div>
+        </div>
+        <div class="schedule-kpi" style="border-bottom:3px solid var(--green);">
+            <div class="sk-label">Months Elapsed</div>
+            <div class="sk-value" id="schedMonthsElapsed">6</div>
+            <div class="sk-sub">of ~19 total</div>
+        </div>
+        <div class="schedule-kpi" style="border-bottom:3px solid var(--primary);">
+            <div class="sk-label">Overall Progress</div>
+            <div class="sk-value" id="schedOverallPct">—</div>
+            <div class="sk-sub">Weighted by trade value</div>
+        </div>
+    </div>
+
+    <!-- Gantt Chart -->
+    <div class="card" style="padding:20px;">
+        <h3 style="margin-bottom:4px;">Project Timeline — Gantt View</h3>
+        <p style="font-size:11px; color:var(--text-light); margin-bottom:12px;">Red line = today (March 10, 2026). Bars show planned duration; filled portion shows progress.</p>
+        <div class="gantt-wrapper">
+            <div class="gantt-chart" id="ganttChart" style="--month-count:19;"></div>
+        </div>
+        <div class="gantt-legend">
+            <div class="gantt-legend-item"><div class="gantt-legend-dot" style="background:#d5dde8;"></div> Planned</div>
+            <div class="gantt-legend-item"><div class="gantt-legend-dot" style="background:var(--primary);"></div> In Progress</div>
+            <div class="gantt-legend-item"><div class="gantt-legend-dot" style="background:var(--green);"></div> Complete / On Track</div>
+            <div class="gantt-legend-item"><div class="gantt-legend-dot" style="background:var(--red);"></div> Critical Path</div>
+            <div class="gantt-legend-item"><div style="width:2px;height:12px;background:var(--red);margin:0 2px;"></div> Today</div>
+        </div>
+    </div>
+
+    <!-- March Focus -->
+    <div class="march-focus">
+        <h4>March 2026 — This Month's Focus</h4>
+        <div class="march-task">
+            <div class="march-task-status active"></div>
+            <div class="march-task-name">Grade Beams &amp; Foundations</div>
+            <div class="march-task-detail">92% — Remaining leveling plates, final pours SE/NW complete</div>
+        </div>
+        <div class="march-task">
+            <div class="march-task-status active"></div>
+            <div class="march-task-name">Marlena Reconstruction</div>
+            <div class="march-task-detail">60% — Floor reconstruction continuing, 2nd floor framing visible</div>
+        </div>
+        <div class="march-task">
+            <div class="march-task-status critical"></div>
+            <div class="march-task-name">Steel Shop Drawings</div>
+            <div class="march-task-detail">20% — CRITICAL PATH: BSI coordinating with DH Steel, fabrication pending approval</div>
+        </div>
+        <div class="march-task">
+            <div class="march-task-status active"></div>
+            <div class="march-task-name">Tower Crane</div>
+            <div class="march-task-detail">Fully erected and operational — ready for steel erection</div>
+        </div>
+        <div class="march-task">
+            <div class="march-task-status active"></div>
+            <div class="march-task-name">Plumbing Underground</div>
+            <div class="march-task-detail">Dwyer Plumbing mobilized — active in SW quadrant</div>
+        </div>
+        <div class="march-task">
+            <div class="march-task-status pending"></div>
+            <div class="march-task-name">Electrical Underground</div>
+            <div class="march-task-detail">15% — Lathrop Electric planning mobilization, SW quadrant next</div>
+        </div>
+        <div class="march-task">
+            <div class="march-task-status pending"></div>
+            <div class="march-task-name">Steel Erection</div>
+            <div class="march-task-detail">5% — Crane ready, awaiting fabrication completion. Target start: late March/early April</div>
+        </div>
+        <div class="march-task">
+            <div class="march-task-status critical"></div>
+            <div class="march-task-name">Penelec EP-601 Redesign</div>
+            <div class="march-task-detail">CRITICAL: Splice box rejected — KAHN must revise to non-fused disconnects. DO NOT build to current plans.</div>
+        </div>
+    </div>
+</div>
+
 <!-- ===== FINANCIAL FORECAST VIEW ===== -->
 <div id="view-forecast" class="view-section">
     <h2 style="font-size:18px; color:var(--primary); margin-bottom:4px;">Financial Payment Forecast</h2>
@@ -1996,6 +2141,108 @@ function switchView(view) {
     document.getElementById('view-' + view).classList.add('active');
     event.target.classList.add('active');
 }
+
+// ===== SCHEDULE GANTT CHART =====
+(function() {
+    var MONTHS = [
+        {label:'Oct 25', y:2025, m:9}, {label:'Nov 25', y:2025, m:10}, {label:'Dec 25', y:2025, m:11},
+        {label:'Jan 26', y:2026, m:0}, {label:'Feb 26', y:2026, m:1}, {label:'Mar 26', y:2026, m:2},
+        {label:'Apr 26', y:2026, m:3}, {label:'May 26', y:2026, m:4}, {label:'Jun 26', y:2026, m:5},
+        {label:'Jul 26', y:2026, m:6}, {label:'Aug 26', y:2026, m:7}, {label:'Sep 26', y:2026, m:8},
+        {label:'Oct 26', y:2026, m:9}, {label:'Nov 26', y:2026, m:10}, {label:'Dec 26', y:2026, m:11},
+        {label:'Jan 27', y:2027, m:0}, {label:'Feb 27', y:2027, m:1}, {label:'Mar 27', y:2027, m:2},
+        {label:'Apr 27', y:2027, m:3}
+    ];
+    var MC = MONTHS.length; // 19
+
+    // Tasks: name, startIdx, endIdx (inclusive), pct, status (complete/active/critical/upcoming)
+    var TASKS = [
+        {name:'Caisson Package', s:0, e:3, pct:95, st:'complete'},
+        {name:'Sitework & Excavation', s:0, e:4, pct:75, st:'active'},
+        {name:'Grade Beams & Foundations', s:1, e:5, pct:92, st:'active'},
+        {name:'Marlena Demo & Reconstruction', s:1, e:8, pct:60, st:'active'},
+        {name:'Steel Shop Drawings & Fab', s:3, e:6, pct:20, st:'critical'},
+        {name:'Electrical Underground', s:3, e:7, pct:15, st:'active'},
+        {name:'Plumbing Underground', s:4, e:7, pct:10, st:'active'},
+        {name:'Tower Crane', s:4, e:6, pct:90, st:'active'},
+        {name:'Structural Steel Erection', s:5, e:8, pct:5, st:'critical'},
+        {name:'Concrete Slabs on Deck', s:7, e:9, pct:0, st:'upcoming'},
+        {name:'Building Envelope', s:8, e:13, pct:0, st:'upcoming'},
+        {name:'MEP Rough-In', s:11, e:17, pct:0, st:'upcoming'},
+        {name:'Interior Finishes', s:13, e:17, pct:0, st:'upcoming'},
+        {name:'Elevator Install', s:10, e:15, pct:0, st:'upcoming'},
+        {name:'Substantial Completion', s:18, e:18, pct:0, st:'upcoming'}
+    ];
+
+    // Current month index (Mar 2026 = index 5)
+    var CUR = 5;
+
+    var el = document.getElementById('ganttChart');
+    if (!el) return;
+    var h = '';
+
+    // Header row
+    h += '<div class="gantt-header">';
+    h += '<div class="gantt-header-label">Work Package</div>';
+    h += '<div class="gantt-months">';
+    for (var i = 0; i < MC; i++) {
+        h += '<div class="gantt-month' + (i === CUR ? ' current' : '') + '">' + MONTHS[i].label + '</div>';
+    }
+    h += '</div></div>';
+
+    // Task rows
+    for (var t = 0; t < TASKS.length; t++) {
+        var tk = TASKS[t];
+        var pctClass = tk.pct >= 90 ? 'done' : tk.pct > 0 ? 'active' : '';
+        var pctLabel = tk.name === 'Substantial Completion' ? 'TARGET' : tk.pct + '%';
+        h += '<div class="gantt-row">';
+        h += '<div class="gantt-task-name">' + tk.name + ' <span class="gantt-task-pct ' + pctClass + '">' + pctLabel + '</span></div>';
+        h += '<div class="gantt-bar-area" style="--month-count:' + MC + ';">';
+
+        // Cell backgrounds
+        for (var c = 0; c < MC; c++) {
+            h += '<div class="gantt-bar-cell' + (c === CUR ? ' current' : '') + '"></div>';
+        }
+
+        // Planned bar
+        var barSpan = tk.e - tk.s + 1;
+        var leftPct = (tk.s / MC * 100).toFixed(2);
+        var widthPct = (barSpan / MC * 100).toFixed(2);
+        h += '<div class="gantt-bar planned" style="left:' + leftPct + '%;width:' + widthPct + '%;"></div>';
+
+        // Progress bar
+        if (tk.pct > 0) {
+            var progWidth = (widthPct * tk.pct / 100).toFixed(2);
+            var barClass = tk.st === 'critical' ? 'critical' : tk.st === 'complete' ? 'complete' : 'progress';
+            h += '<div class="gantt-bar ' + barClass + '" style="left:' + leftPct + '%;width:' + progWidth + '%;"></div>';
+        }
+
+        // Today line (in each row at the correct position within Mar 2026)
+        // Mar 10 is ~32% through the month, so position is (5 + 0.32) / 19
+        var todayPct = ((CUR + 10/31) / MC * 100).toFixed(2);
+        h += '<div class="gantt-today-line" style="left:' + todayPct + '%;"></div>';
+
+        h += '</div></div>';
+    }
+
+    // Add today label on top
+    el.innerHTML = h;
+
+    // Compute overall progress (weighted by rough trade values)
+    var weights = [508,140,640,574,2458,1273,592,413,2458,2080,3698,2080,8763,350,0];
+    var totalW = 0, totalProg = 0;
+    for (var w = 0; w < weights.length; w++) {
+        totalW += weights[w];
+        totalProg += weights[w] * TASKS[w].pct / 100;
+    }
+    var overallPct = Math.round(totalProg / totalW * 100);
+    var oel = document.getElementById('schedOverallPct');
+    if (oel) oel.textContent = overallPct + '%';
+
+    // Months elapsed
+    var mel = document.getElementById('schedMonthsElapsed');
+    if (mel) mel.textContent = (CUR + 1);
+})();
 
 // ===== SAFETY DAYS COUNTER =====
 (function() {
