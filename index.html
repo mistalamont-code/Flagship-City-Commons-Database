@@ -518,6 +518,7 @@
     <button class="view-btn" onclick="switchView('contacts')">Contacts</button>
     <button class="view-btn" onclick="switchView('tenants')">Tenant Recruitment</button>
     <button class="view-btn" onclick="switchView('schedule')">Schedule</button>
+    <button class="view-btn" onclick="switchView('subs')">Subcontractors</button>
     <button class="view-btn" onclick="switchView('forecast')">Financial Forecast</button>
     <button class="view-btn" onclick="switchView('rfi')">RFI / Submittals</button>
     <button class="view-btn" onclick="switchView('actions')">Action Items</button>
@@ -1586,6 +1587,40 @@
     </div>
 </div>
 
+<!-- ===== SUBCONTRACTORS VIEW ===== -->
+<div id="view-subs" class="view-section">
+    <h2 style="font-size:18px; color:var(--primary); margin-bottom:4px;">Subcontractor Directory</h2>
+    <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Active and upcoming subcontractors on Flagship City Commons &bull; GC: Building Systems Inc.</p>
+
+    <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
+        <input type="text" id="subSearch" placeholder="Search subcontractors..." oninput="filterSubs()" style="flex:1; min-width:200px; padding:10px 14px; border:1px solid #d1d8e0; border-radius:8px; font-size:13px;">
+        <select id="subStatusFilter" onchange="filterSubs()" style="padding:10px 14px; border:1px solid #d1d8e0; border-radius:8px; font-size:13px; background:#fff; cursor:pointer;">
+            <option value="all">All Statuses</option>
+            <option value="Active">Active On-Site</option>
+            <option value="Mobilizing">Mobilizing</option>
+            <option value="Not Yet Started">Not Yet Started</option>
+            <option value="Complete">Complete</option>
+        </select>
+    </div>
+
+    <div style="overflow-x:auto;">
+        <table id="subsTable" style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead>
+                <tr style="background:var(--primary); color:#fff;">
+                    <th style="padding:10px 14px; text-align:left; cursor:pointer; white-space:nowrap;" onclick="sortSubs('company')">Company &#9650;&#9660;</th>
+                    <th style="padding:10px 14px; text-align:left; cursor:pointer; white-space:nowrap;" onclick="sortSubs('trade')">Trade &#9650;&#9660;</th>
+                    <th style="padding:10px 14px; text-align:left;">Status</th>
+                    <th style="padding:10px 14px; text-align:left;">Primary Contact</th>
+                    <th style="padding:10px 14px; text-align:left;">Phone</th>
+                    <th style="padding:10px 14px; text-align:left;">Email</th>
+                </tr>
+            </thead>
+            <tbody id="subsBody"></tbody>
+        </table>
+    </div>
+    <div id="subsCount" style="margin-top:10px; font-size:12px; color:var(--text-light);"></div>
+</div>
+
 <!-- ===== FINANCIAL FORECAST VIEW ===== -->
 <div id="view-forecast" class="view-section">
     <h2 style="font-size:18px; color:var(--primary); margin-bottom:4px;">Financial Payment Forecast</h2>
@@ -2243,6 +2278,94 @@ function switchView(view) {
     var mel = document.getElementById('schedMonthsElapsed');
     if (mel) mel.textContent = (CUR + 1);
 })();
+
+// ===== SUBCONTRACTOR DIRECTORY =====
+var SUBCONTRACTORS = [
+    {company:"Perry Construction", trade:"Concrete / Foundations", status:"Active", contact:"Tim Palmer", phone:"(814) 459-8551", email:"timpalmer@perryconst.com"},
+    {company:"McCrossin Foundations", trade:"Caissons / Deep Foundations", status:"Complete", contact:"Matthew Pauvlinch", phone:"(412) 770-7155", email:"mpauvlinch@mccrossin.com"},
+    {company:"DH Steel Products", trade:"Structural Steel Fabrication", status:"Active", contact:"Matt Tobin", phone:"(814) 464-6069", email:"mtobin@dhsteel.org"},
+    {company:"Lathrop Electric", trade:"Electrical", status:"Mobilizing", contact:"Jen Stancil", phone:"(814) 455-1772", email:"jen@lathroplei.com"},
+    {company:"Dwyer Plumbing", trade:"Plumbing", status:"Active", contact:"Michelle Firman", phone:"(814) 679-4108", email:"Djd55@aol.com"},
+    {company:"Rabe", trade:"HVAC / Mechanical", status:"Not Yet Started", contact:"Doug Wilson", phone:"(814) 456-5374", email:"dwilson@rabehvac.com"},
+    {company:"Corporate Glass Inc.", trade:"Glazing / Curtain Wall", status:"Not Yet Started", contact:"Chris Moisio", phone:"(814) 455-5151", email:"chris.moisio@corporateglassinc.com"},
+    {company:"RGS Products Inc", trade:"Rebar / Reinforcing Steel", status:"Active", contact:"Shane Uber", phone:"(814) 969-3659", email:"shaneu@rgsproductsinc.com"},
+    {company:"Acurlite Structural Skylights", trade:"Skylights", status:"Not Yet Started", contact:"Chas Campbell", phone:"(570) 759-6882", email:"ccampbell@acurlite.com"},
+    {company:"Otis Elevator", trade:"Elevator", status:"Not Yet Started", contact:"Suzanne Trubia", phone:"(585) 498-4530", email:"suzanne.trubia@otis.com"},
+    {company:"Pacific Rod Iron, LLC", trade:"Miscellaneous Metals", status:"Not Yet Started", contact:"Kevin Sisson", phone:"", email:"ksisson@pacificrodiron.com"},
+    {company:"Presta Supply", trade:"Building Materials Supplier", status:"Active", contact:"Tim Presta", phone:"(814) 833-0655", email:"tpresta@prestasupply.com"}
+];
+
+var subSortField = 'company';
+var subSortAsc = true;
+
+function getStatusBadge(status) {
+    var colors = {
+        'Active': 'background:#2e8b57;color:#fff',
+        'Mobilizing': 'background:#d4a843;color:#000',
+        'Not Yet Started': 'background:#7f8c8d;color:#fff',
+        'Complete': 'background:#1a3a5c;color:#fff'
+    };
+    return '<span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap;' + (colors[status] || 'background:#7f8c8d;color:#fff') + '">' + status + '</span>';
+}
+
+function renderSubs(data) {
+    var body = document.getElementById('subsBody');
+    if (!body) return;
+    var html = '';
+    for (var i = 0; i < data.length; i++) {
+        var s = data[i];
+        var bg = i % 2 === 0 ? '#fff' : '#f8f9fa';
+        var phoneLink = s.phone ? '<a href="tel:' + s.phone.replace(/[^0-9+]/g,'') + '" style="color:var(--primary);text-decoration:none">' + s.phone + '</a>' : '—';
+        var emailLink = '<a href="mailto:' + s.email + '" style="color:var(--primary);text-decoration:none;word-break:break-all">' + s.email + '</a>';
+        html += '<tr style="background:' + bg + '">';
+        html += '<td style="padding:10px 14px;font-weight:600;border-bottom:1px solid #e0e4e8">' + s.company + '</td>';
+        html += '<td style="padding:10px 14px;border-bottom:1px solid #e0e4e8">' + s.trade + '</td>';
+        html += '<td style="padding:10px 14px;border-bottom:1px solid #e0e4e8">' + getStatusBadge(s.status) + '</td>';
+        html += '<td style="padding:10px 14px;border-bottom:1px solid #e0e4e8">' + s.contact + '</td>';
+        html += '<td style="padding:10px 14px;border-bottom:1px solid #e0e4e8;white-space:nowrap">' + phoneLink + '</td>';
+        html += '<td style="padding:10px 14px;border-bottom:1px solid #e0e4e8">' + emailLink + '</td>';
+        html += '</tr>';
+    }
+    body.innerHTML = html;
+    var countEl = document.getElementById('subsCount');
+    if (countEl) {
+        var active = data.filter(function(s){return s.status==='Active'}).length;
+        var mobilizing = data.filter(function(s){return s.status==='Mobilizing'}).length;
+        countEl.textContent = 'Showing ' + data.length + ' of ' + SUBCONTRACTORS.length + ' subcontractors — ' + active + ' active, ' + mobilizing + ' mobilizing';
+    }
+}
+
+function filterSubs() {
+    var query = (document.getElementById('subSearch').value || '').toLowerCase();
+    var statusFilter = document.getElementById('subStatusFilter').value;
+    var filtered = SUBCONTRACTORS.filter(function(s) {
+        var matchSearch = !query || (s.company + ' ' + s.trade + ' ' + s.contact + ' ' + s.email).toLowerCase().indexOf(query) >= 0;
+        var matchStatus = statusFilter === 'all' || s.status === statusFilter;
+        return matchSearch && matchStatus;
+    });
+    // Apply current sort
+    filtered.sort(function(a, b) {
+        var va = a[subSortField].toLowerCase();
+        var vb = b[subSortField].toLowerCase();
+        if (va < vb) return subSortAsc ? -1 : 1;
+        if (va > vb) return subSortAsc ? 1 : -1;
+        return 0;
+    });
+    renderSubs(filtered);
+}
+
+function sortSubs(field) {
+    if (subSortField === field) {
+        subSortAsc = !subSortAsc;
+    } else {
+        subSortField = field;
+        subSortAsc = true;
+    }
+    filterSubs();
+}
+
+// Initial render
+filterSubs();
 
 // ===== SAFETY DAYS COUNTER =====
 (function() {
