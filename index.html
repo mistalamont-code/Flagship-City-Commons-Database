@@ -488,13 +488,7 @@
 
 <div class="header">
     <div style="display:flex; align-items:center; gap:14px;">
-        <svg width="44" height="44" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <polygon points="50,8 75,28 50,48 25,28" fill="#5bbce4" opacity="0.85"/>
-            <polygon points="50,28 75,48 50,68 25,48" fill="#3a9e5c" opacity="0.85"/>
-            <polygon points="50,48 75,68 50,88 25,68" fill="#2e7d4f" opacity="0.75"/>
-            <polygon points="25,28 50,48 25,48" fill="#4aaf6a" opacity="0.7"/>
-            <polygon points="75,28 50,48 75,48" fill="#4aaf6a" opacity="0.7"/>
-        </svg>
+        <img src="EDDC Logo 2.jpg" alt="EDDC Logo" style="height:52px; width:auto; border-radius:6px; background:#fff; padding:3px 6px; box-shadow:0 1px 4px rgba(0,0,0,0.2);">
         <div>
             <h1>EDDC <span style="font-weight:400; opacity:0.85;">Flagship City Commons</span></h1>
             <div class="subtitle">24-28 North Park Row, Erie, PA 16501 &bull; BSI Job #125116B &bull; Data as of 3/10/2026</div>
@@ -529,6 +523,18 @@
 
 <!-- ============ SUMMARY VIEW ============ -->
 <div id="view-summary" class="view-section active">
+
+    <!-- Project Renders Hero -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; border-radius:12px; overflow:hidden;">
+        <div style="position:relative; border-radius:10px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,0.15);">
+            <img src="Flagship Commons - 5th Street View.jpg" alt="Flagship Commons - 5th Street Rendering" style="width:100%; height:220px; object-fit:cover; display:block;">
+            <div style="position:absolute; bottom:0; left:0; right:0; padding:8px 14px; background:linear-gradient(transparent, rgba(26,58,92,0.85)); color:#fff; font-size:11px; font-weight:600; letter-spacing:0.3px;">5th Street View</div>
+        </div>
+        <div style="position:relative; border-radius:10px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,0.15);">
+            <img src="Flagship Commons - North Park Row View.jpg" alt="Flagship Commons - North Park Row Rendering" style="width:100%; height:220px; object-fit:cover; display:block;">
+            <div style="position:absolute; bottom:0; left:0; right:0; padding:8px 14px; background:linear-gradient(transparent, rgba(26,58,92,0.85)); color:#fff; font-size:11px; font-weight:600; letter-spacing:0.3px;">North Park Row View</div>
+        </div>
+    </div>
 
     <!-- Quick Status Brief -->
     <div class="card" style="background:linear-gradient(135deg,#f0f7f3 0%,#e8f4ec 100%); border:1px solid #c3e6cb; margin-bottom:20px; border-left:5px solid var(--eddc-green);">
@@ -1933,6 +1939,21 @@
 <div id="view-photos" class="view-section">
     <h2 style="font-size:18px; color:var(--primary); margin-bottom:4px;">Photo &amp; Progress Documentation</h2>
     <p style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Visual construction progress tracking &bull; BSI bi-weekly photo documentation &bull; 8 photo reports on file</p>
+
+    <!-- Project Renders -->
+    <div class="card" style="margin-bottom:20px;">
+        <h3 style="color:var(--primary); margin-bottom:12px;">Architectural Renderings</h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+            <div>
+                <img src="Flagship Commons - 5th Street View.jpg" alt="5th Street View Rendering" style="width:100%; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.12); display:block;">
+                <p style="font-size:12px; color:var(--text-light); margin-top:6px; text-align:center; font-weight:600;">5th Street View — Evening Rendering</p>
+            </div>
+            <div>
+                <img src="Flagship Commons - North Park Row View.jpg" alt="North Park Row View Rendering" style="width:100%; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.12); display:block;">
+                <p style="font-size:12px; color:var(--text-light); margin-top:6px; text-align:center; font-weight:600;">North Park Row View — Street Level Rendering</p>
+            </div>
+        </div>
+    </div>
 
     <!-- Progress Timeline KPIs -->
     <div class="kpi-grid" style="margin-bottom:20px;">
